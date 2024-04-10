@@ -1,5 +1,3 @@
-# Dependency
-
 # Doc
 ## Configuration
 

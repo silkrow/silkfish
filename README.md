@@ -6,4 +6,8 @@ A naive implementation of Chess Engine
 * Engine play with engine
 * Game analysis of a given position
 
+## Dependency
+### Python modules
+json
+
 
