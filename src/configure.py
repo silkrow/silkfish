@@ -3,10 +3,6 @@ import json
 class Configure:
     """
     A class for loading and accessing configuration settings from a JSON file.
-
-    Attributes:
-        filename (str): The name of the JSON file containing configuration settings.
-        config (dict): The loaded configuration settings from the JSON file.
     """
 
     def __init__(self, filename):

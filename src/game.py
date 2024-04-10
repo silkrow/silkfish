@@ -1,3 +1,5 @@
+import chess
+
 from configure import Configure
 
 class Game:
@@ -19,6 +21,9 @@ class Game:
         print(self.conf1.get_minimax_depth())
         print(self.conf2.get_evaluation_weights())
 
+        self.board = chess.Board()
+        
+        print(self.board)
 
 
 

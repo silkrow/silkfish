@@ -8,6 +8,7 @@ A naive implementation of Chess Engine
 
 ## Dependency
 ### Python modules
+python-chess
 json
 
 
