@@ -66,6 +66,20 @@ class Game:
                 and self.ply2.color != PlayerColor.UNDECIDED \
                 and self.ply1.color != self.ply2.color 
 
+    def start(self):
+        """
+        Starts the game!
+        """
+        ############## Game Play Condition Check ##############
+        if not self.ready():
+            print("Failed to start the game due to incomplete game configuration.")
+            return
+        
+        # Force an initialization of the board?
+        self.board = chess.board()
+
+        # while self.board.
+
 
 
 if __name__ == "__main__":
@@ -80,4 +94,4 @@ if __name__ == "__main__":
 
     print("game ready? ", game.ready())
 
-
+    game.start()

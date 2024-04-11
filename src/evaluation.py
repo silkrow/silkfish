@@ -5,9 +5,11 @@ class Evaluation:
     A class to give an evaluation of a given position.
     """
 
-    def __init__(self, board):
+    def evaluate(board):
         """
-        Initialize the Evaluation instance with the chess board 
+        Returns:
+            float: the evaluation of a position
         """
-        self.board = board
+
+        return 0
     
