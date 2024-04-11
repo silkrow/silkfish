@@ -1,6 +1,7 @@
 import chess
 
 from configure import Configure
+from player import Player, PlayerColor, PlayerType
 
 class Game:
     """
@@ -8,26 +9,75 @@ class Game:
     engine configuration, board state, etc.
     """
 
-    def __init__(self, conf_file1, conf_file2):
+    def __init__(self):
         """
-        Load the configuration from a specified configuration file. 
         Initialize a chess game. 
         """
-        self.conf1 = Configure(conf_file1)
-        self.conf2 = Configure(conf_file2)
-        self.conf1.load_config()
-        self.conf2.load_config()
 
-        print(self.conf1.get_minimax_depth())
-        print(self.conf2.get_evaluation_weights())
+        self.ply1 = None
+        self.ply2 = None
 
         self.board = chess.Board()
+
+
+    def add_player(self, player_type, conf_file=None):
+        """
+        Adds a player to the game.
+
+        Returns: 
+            bool: Whether the players is successfully added.
+        """
+        if self.ply1 == None:
+            self.ply1 = Player(player_type, conf_file)
+            return True
+        elif self.ply2 == None:
+            self.ply2 = Player(player_type, conf_file)
+            return True
+        else:
+            return False
         
-        print(self.board)
+    def assign_color(self, playernum, color):
+        """
+        Assigns the player with the color, 
+            1 for ply1
+            2 for ply2
+
+        Returns:
+            bool: Whether the assignment succeeded.
+        """
+
+        if playernum == 1 and self.ply1 != None:
+            self.ply1.assign_color(color)
+            return True
+        elif playernum == 2 and self.ply2 != None:
+            self.ply2.assign_color(color)
+            return True
+        else:
+            return False
+
+    def ready(self):
+        """
+        Returns:
+            bool: Whether a game is ready to start.
+        """
+
+        return self.ply1 != None and self.ply2 != None \
+                and self.ply1.color != PlayerColor.UNDECIDED \
+                and self.ply2.color != PlayerColor.UNDECIDED \
+                and self.ply1.color != self.ply2.color 
 
 
 
 if __name__ == "__main__":
-    game = Game("../config/config.json", "../config/config.json")
+    game = Game()
+    if game.add_player(PlayerType.ENGINE, "../config/config.json"):
+        print("Add engine success")
+    if game.add_player(PlayerType.ENGINE, "../config/config.json"):
+        print("Add engine success")
 
-        
+    game.assign_color(1, PlayerColor.BLACK)
+    game.assign_color(2, PlayerColor.WHITE)
+
+    print("game ready? ", game.ready())
+
+

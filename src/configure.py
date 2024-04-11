@@ -24,11 +24,9 @@ class Configure:
                 config = json.load(f)
                 return config
         except FileNotFoundError:
-            print(f"Error: File '{self.filename}' not found.")
-            return None
+            raise ValueError(f"Error: Configuration file '{self.filename}' not found.")
         except json.JSONDecodeError:
-            print(f"Error: Unable to decode JSON in '{self.filename}'.")
-            return None
+            raise ValueError(f"Error: Unable to decode JSON configuration in '{self.filename}'.")
 
     def get_minimax_depth(self):
         """
