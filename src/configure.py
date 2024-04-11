@@ -8,9 +8,6 @@ class Configure:
     def __init__(self, filename):
         """
         Initialize the Configure instance with the specified filename.
-
-        Args:
-            filename (str): The name of the JSON file containing configuration settings.
         """
         self.filename = filename
         self.config = self.load_config()
