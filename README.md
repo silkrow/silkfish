@@ -10,5 +10,7 @@ A naive implementation of Chess Engine
 ### Python modules
 * python-chess
 * json
+* enum
+* random
 
 

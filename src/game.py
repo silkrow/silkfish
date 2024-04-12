@@ -1,7 +1,6 @@
 import chess
 
-from configure import Configure
-from player import Player, PlayerColor, PlayerType
+from player import Player, PlayerType
 
 class Game:
     """
@@ -62,8 +61,8 @@ class Game:
         """
 
         return self.ply1 != None and self.ply2 != None \
-                and self.ply1.color != PlayerColor.UNDECIDED \
-                and self.ply2.color != PlayerColor.UNDECIDED \
+                and self.ply1.color != None \
+                and self.ply2.color != None \
                 and self.ply1.color != self.ply2.color 
 
     def start(self):
@@ -78,7 +77,7 @@ class Game:
         # Force an initialization of the board?
         board = chess.Board()
 
-        if self.ply1.color == PlayerColor.WHITE:
+        if self.ply1.color == chess.WHITE:
             white_player = self.ply1
             black_player = self.ply2
         else:
@@ -114,11 +113,11 @@ if __name__ == "__main__":
     game = Game()
     if game.add_player(PlayerType.ENGINE, "../config/config.json"):
         print("Add engine success")
-    if game.add_player(PlayerType.ENGINE, "../config/config.json"):
-        print("Add engine success")
+    if game.add_player(PlayerType.HUMAN, "../config/config.json"):
+        print("Add human success")
 
-    game.assign_color(1, PlayerColor.BLACK)
-    game.assign_color(2, PlayerColor.WHITE)
+    game.assign_color(1, chess.BLACK)
+    game.assign_color(2, chess.WHITE)
 
     print("game ready? ", game.ready())
 
