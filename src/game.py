@@ -1,6 +1,7 @@
 import chess
 
 from player import Player, PlayerType
+import display_unicode
 
 class Game:
     """
@@ -91,7 +92,9 @@ class Game:
                 move = black_player.get_move(board)
 
             board.push(move)
-            print(board)
+
+            # Display the board at each move
+            display_unicode.print_board(board.turn, board)
 
         # Print the result
         if board.is_checkmate():
