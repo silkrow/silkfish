@@ -1,3 +1,5 @@
+import chess
+import random
 from enum import Enum, auto
 from configure import Configure
 
@@ -36,3 +38,6 @@ class Player:
         """
         self.color = color
     
+    def get_move(self, board):
+        legal_moves = list(board.legal_moves)
+        return random.choice(legal_moves)

@@ -76,10 +76,38 @@ class Game:
             return
         
         # Force an initialization of the board?
-        self.board = chess.board()
+        board = chess.Board()
 
-        # while self.board.
+        if self.ply1.color == PlayerColor.WHITE:
+            white_player = self.ply1
+            black_player = self.ply2
+        else:
+            white_player = self.ply2
+            black_player = self.ply1
 
+        while not board.is_game_over():
+            if board.turn == chess.WHITE:
+                move = white_player.get_move(board)
+            else:
+                move = black_player.get_move(board)
+
+            board.push(move)
+            print(board)
+
+        # Print the result
+        if board.is_checkmate():
+            winner = "White" if board.turn == chess.BLACK else "Black"
+            print(f"Checkmate! {winner} wins!")
+        elif board.is_stalemate():
+            print("Stalemate! The game is drawn.")
+        elif board.is_insufficient_material():
+            print("Insufficient material! The game is drawn.")
+        elif board.is_seventyfive_moves():
+            print("Seventy-five moves rule! The game is drawn.")
+        elif board.is_fivefold_repetition():
+            print("Fivefold repetition! The game is drawn.")
+        else:
+            print("Unknown result.")
 
 
 if __name__ == "__main__":
