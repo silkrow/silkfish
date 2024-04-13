@@ -10,16 +10,15 @@ class Evaluation:
     def __init__(self, conf) -> None:
         """
         Load the configuration of the engine, define some
-        default constants
+        default constants.
         """
         self.conf = conf
 
-    def evaluate(self, board):
+    def material_count(self, board):
         """
         Returns:
-            float: the evaluation of the current board.
+            int, int: material count for white and black.
         """
-
         piece_values = {
             chess.PAWN: 1,
             chess.KNIGHT: 3,
@@ -41,5 +40,17 @@ class Evaluation:
                 else:
                     black_material += piece_values.get(piece.piece_type, 0)
 
+        return white_material, black_material
+
+
+
+    def evaluate(self, board):
+        """
+        Returns:
+            float: the evaluation of the current board.
+        """
+        white_material, black_material = self.material_count(board)
+
         return white_material - black_material
     
+
