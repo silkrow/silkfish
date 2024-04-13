@@ -14,18 +14,32 @@ class Evaluation:
         """
         self.conf = conf
 
-        # Piece values
-        self.P = 1
-        self.B = 3
-        self.N = 3
-        self.R = 5
-        self.Q = 9
-
     def evaluate(self, board):
         """
         Returns:
-            float: the evaluation of a position
+            float: the evaluation of the current board.
         """
+
+        piece_values = {
+            chess.PAWN: 1,
+            chess.KNIGHT: 3,
+            chess.BISHOP: 3,
+            chess.ROOK: 5,
+            chess.QUEEN: 9
+        }
         
-        return 0
+        white_material = 0
+        black_material = 0
+
+        # Iterate over all squares
+        for square in chess.SQUARES:
+            piece = board.piece_at(square)
+            if piece:
+                # Add piece value to the corresponding side's material count
+                if piece.color == chess.WHITE:
+                    white_material += piece_values.get(piece.piece_type, 0)
+                else:
+                    black_material += piece_values.get(piece.piece_type, 0)
+
+        return white_material - black_material
     

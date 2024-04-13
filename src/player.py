@@ -62,6 +62,7 @@ class Player:
                 else:
                     print("Illegal move. Please try again.")
         elif self.type == PlayerType.ENGINE:
+            print(self.evaluation.evaluate(board))
             legal_moves = list(board.legal_moves)
             return random.choice(legal_moves)
         else:
