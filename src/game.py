@@ -114,10 +114,8 @@ class Game:
 
 if __name__ == "__main__":
     game = Game()
-    if game.add_player(PlayerType.ENGINE, "../config/config.json"):
-        print("Add engine success")
-    if game.add_player(PlayerType.HUMAN, "../config/config.json"):
-        print("Add human success")
+    game.add_player(PlayerType.ENGINE, "../config/config.json")
+    game.add_player(PlayerType.HUMAN, "../config/config.json")
 
     game.assign_color(1, chess.BLACK)
     game.assign_color(2, chess.WHITE)

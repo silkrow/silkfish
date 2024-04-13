@@ -1,7 +1,8 @@
-import chess
 import random
+
 from enum import Enum, auto
 from configure import Configure
+from evaluation import Evaluation
 
 class PlayerType(Enum):
     HUMAN = auto()
@@ -22,10 +23,15 @@ class Player:
             if conf_file == None:
                 raise ValueError("Error: Engine player missing configuration file.")
             self.conf = Configure(conf_file)
+            self.evaluation = Evaluation(self.conf)
         elif self.type == PlayerType.HUMAN:
             self.conf = None
+            self.evaluation = None
         else:
             raise ValueError("Error: Player type invalid.")
+
+
+       
     
     def assign_color(self, color):
         """
@@ -38,11 +44,8 @@ class Player:
         Returns:
             chess.Move: A move to be made given the board.
         """
-
-        if self.type == PlayerType.ENGINE:
-            legal_moves = list(board.legal_moves)
-            return random.choice(legal_moves)
-        else:
+         
+        if self.type == PlayerType.HUMAN:
             while True:
                 user_input = input("Enter your move in SAN format (e.g. Nf3): ")
                 
@@ -58,3 +61,8 @@ class Player:
                     return move
                 else:
                     print("Illegal move. Please try again.")
+        elif self.type == PlayerType.ENGINE:
+            legal_moves = list(board.legal_moves)
+            return random.choice(legal_moves)
+        else:
+            raise ValueError("Error: Player type invalid.")
