@@ -1,4 +1,5 @@
 import chess
+import chess.pgn
 
 from player import Player, PlayerType
 import display_unicode
@@ -95,6 +96,22 @@ class Game:
 
             # Display the board at each move
             display_unicode.print_board(board.turn, board)
+        
+        # Create a new game to store the moves
+        game = chess.pgn.Game()
+
+        # Set up the board from the game
+        node = game.add_variation(board.move_stack[0])
+
+        # Add moves to the PGN
+        for move in board.move_stack[1:]:
+            node = node.add_variation(move)
+
+        # Print the PGN
+        pgn_string = str(game)
+        print()
+        print(pgn_string)
+
 
         # Print the result
         if board.is_checkmate():
@@ -115,7 +132,7 @@ class Game:
 if __name__ == "__main__":
     game = Game()
     game.add_player(PlayerType.ENGINE, "../config/config.json")
-    game.add_player(PlayerType.HUMAN, "../config/config.json")
+    game.add_player(PlayerType.ENGINE, "../config/config.json")
 
     game.assign_color(1, chess.BLACK)
     game.assign_color(2, chess.WHITE)
