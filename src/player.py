@@ -102,11 +102,12 @@ class Player:
                 board.push(move)
                 
                 # Check if the move is a capture
-                is_capture = board.is_capture(move)
-                if depth == 1 and is_capture and capture_depth < self.conf.config["capture_depth"]:
-                    eval = self.minimax(board, depth, alpha, beta, chess.BLACK, capture_depth+1)
-                else:
-                    eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK)
+                # is_capture = board.is_capture(move)
+                # if depth == 1 and is_capture and capture_depth < self.conf.config["capture_depth"]:
+                #     eval = self.minimax(board, depth, alpha, beta, chess.BLACK, capture_depth+1)
+                # else:
+                #     eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK)
+                eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK)
                 
                 board.pop()
                 max_eval = max(max_eval, eval)
@@ -122,11 +123,12 @@ class Player:
                 board.push(move)
                 
                 # Check if the move is a capture
-                is_capture = board.is_capture(move)
-                if depth == 1 and is_capture and capture_depth < self.conf.config["capture_depth"]:
-                    eval = self.minimax(board, depth, alpha, beta, chess.WHITE, capture_depth+1)
-                else:
-                    eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE)
+                # is_capture = board.is_capture(move)
+                # if depth == 1 and is_capture and capture_depth < self.conf.config["capture_depth"]:
+                #     eval = self.minimax(board, depth, alpha, beta, chess.WHITE, capture_depth+1)
+                # else:
+                #     eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE)
+                eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE)
                 
                 board.pop()
                 min_eval = min(min_eval, eval)
