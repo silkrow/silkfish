@@ -8,17 +8,9 @@ class Evaluation:
     """
 
     def __init__(self, conf) -> None:
-        """
-        Load the configuration of the engine, define some
-        default constants.
-        """
         self.conf = conf
 
     def material_count(self, board):
-        """
-        Returns:
-            int, int: material count for white and black.
-        """
         piece_values = {
             chess.PAWN: 1,
             chess.KNIGHT: 3,
@@ -42,7 +34,49 @@ class Evaluation:
 
         return white_material, black_material
 
+    def castling_bonus(self, board):
+        evaluation = 0
+        castling_right = 0.3
+        castled = 0.1
+        in_center = -0.3
 
+        # Check for castling
+        if board.has_kingside_castling_rights(chess.WHITE) or board.has_queenside_castling_rights(chess.WHITE):
+            evaluation += castling_right  
+        if board.has_kingside_castling_rights(chess.BLACK) or board.has_queenside_castling_rights(chess.BLACK):
+            evaluation -= castling_right 
+
+        # Reward castling
+        white_castled = (
+            board.piece_at(chess.G1) == chess.KING and
+            board.piece_at(chess.F1) == chess.ROOK
+        ) or (
+            board.piece_at(chess.C1) == chess.KING and
+            board.piece_at(chess.D1) == chess.ROOK
+        )
+
+        black_castled = (
+            board.piece_at(chess.G8) == chess.KING and
+            board.piece_at(chess.F8) == chess.ROOK
+        ) or (
+            board.piece_at(chess.C8) == chess.KING and
+            board.piece_at(chess.D8) == chess.ROOK
+        )
+
+        if white_castled:
+            evaluation += castled
+        if black_castled:
+            evaluation -= castled
+
+        # Penalize if king is still in the center
+        if not white_castled:
+            if board.king(chess.WHITE) in [chess.E1, chess.D1]:
+                evaluation -= in_center
+        if not black_castled:
+            if board.king(chess.BLACK) in [chess.E8, chess.D8]:
+                evaluation += in_center
+        
+        return evaluation
 
     def evaluate(self, board):
         """
@@ -61,5 +95,7 @@ class Evaluation:
         # Material count evaluation
         white_material, black_material = self.material_count(board)
 
-        # Basic evaluation based on material difference
-        return white_material - black_material
+        evaluation = white_material - black_material
+        evaluation += self.castling_bonus(board)
+
+        return evaluation

@@ -65,7 +65,7 @@ class Player:
             min_eval = float('inf')
             alpha = float('-inf')
             beta = float('inf')
-            depth = 4
+            depth = self.conf.config["minimax_depth"]
 
             legal_moves = list(board.legal_moves)
             random.shuffle(legal_moves)
@@ -90,7 +90,7 @@ class Player:
             raise ValueError("Error: Player type invalid.")
 
     ########## KEY LOGIC OF SEARCHING IN GAME TREE ##########
-    def minimax(self, board, depth, alpha, beta, maximizing_color):
+    def minimax(self, board, depth, alpha, beta, maximizing_color, capture_depth=0):
         if depth == 0 or board.is_game_over():
             return self.evaluation.evaluate(board)
         
@@ -100,7 +100,14 @@ class Player:
             random.shuffle(legal_moves)
             for move in legal_moves:
                 board.push(move)
-                eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK)
+                
+                # Check if the move is a capture
+                is_capture = board.is_capture(move)
+                if depth == 1 and is_capture and capture_depth < self.conf.config["capture_depth"]:
+                    eval = self.minimax(board, depth, alpha, beta, chess.BLACK, capture_depth+1)
+                else:
+                    eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK)
+                
                 board.pop()
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, max_eval)
@@ -113,7 +120,14 @@ class Player:
             random.shuffle(legal_moves)
             for move in legal_moves:
                 board.push(move)
-                eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE)
+                
+                # Check if the move is a capture
+                is_capture = board.is_capture(move)
+                if depth == 1 and is_capture and capture_depth < self.conf.config["capture_depth"]:
+                    eval = self.minimax(board, depth, alpha, beta, chess.WHITE, capture_depth+1)
+                else:
+                    eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE)
+                
                 board.pop()
                 min_eval = min(min_eval, eval)
                 beta = min(beta, min_eval)

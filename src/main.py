@@ -5,16 +5,8 @@ from player import Player, PlayerType
 import display_unicode
 
 class Game:
-    """
-    A class to hold all the needed information of a game, including 
-    engine configuration, board state, etc.
-    """
 
     def __init__(self):
-        """
-        Initialize a chess game. 
-        """
-
         self.ply1 = None
         self.ply2 = None
 
@@ -57,20 +49,12 @@ class Game:
             return False
 
     def ready(self):
-        """
-        Returns:
-            bool: Whether a game is ready to start.
-        """
-
         return self.ply1 != None and self.ply2 != None \
                 and self.ply1.color != None \
                 and self.ply2.color != None \
                 and self.ply1.color != self.ply2.color 
 
     def start(self):
-        """
-        Starts the game!
-        """
         ############## Game Play Condition Check ##############
         if not self.ready():
             print("Failed to start the game due to incomplete game configuration.")
@@ -165,6 +149,4 @@ if __name__ == "__main__":
     else:
         print("Invalid choice! Please select A, B, C, or D.")
 
-    print("game ready? ", game.ready())
-    if game.ready():
-        game.start()
+    game.start()
