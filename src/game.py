@@ -131,12 +131,40 @@ class Game:
 
 if __name__ == "__main__":
     game = Game()
-    game.add_player(PlayerType.ENGINE, "../config/config.json")
-    game.add_player(PlayerType.ENGINE, "../config/config.json")
 
-    game.assign_color(1, chess.BLACK)
-    game.assign_color(2, chess.WHITE)
+    print("Select game mode:")
+    print("A. Human vs Engine")
+    print("B. Engine vs Human")
+    print("C. Human vs Human")
+    print("D. Engine vs Engine")
+
+    choice = input("Enter your choice (A/B/C/D): ").strip().upper()
+
+    game = Game()
+
+    if choice == "A":
+        game.add_player(PlayerType.HUMAN)
+        game.add_player(PlayerType.ENGINE, "../config/config.json")
+        game.assign_color(1, chess.WHITE)
+        game.assign_color(2, chess.BLACK)
+    elif choice == "B":
+        game.add_player(PlayerType.ENGINE, "../config/config.json")
+        game.add_player(PlayerType.HUMAN)
+        game.assign_color(1, chess.WHITE)
+        game.assign_color(2, chess.BLACK)
+    elif choice == "C":
+        game.add_player(PlayerType.HUMAN)
+        game.add_player(PlayerType.HUMAN)
+        game.assign_color(1, chess.WHITE)
+        game.assign_color(2, chess.BLACK)
+    elif choice == "D":
+        game.add_player(PlayerType.ENGINE, "../config/config.json")
+        game.add_player(PlayerType.ENGINE, "../config/config.json")
+        game.assign_color(1, chess.WHITE)
+        game.assign_color(2, chess.BLACK)
+    else:
+        print("Invalid choice! Please select A, B, C, or D.")
 
     print("game ready? ", game.ready())
-
-    game.start()
+    if game.ready():
+        game.start()

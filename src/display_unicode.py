@@ -15,8 +15,8 @@ def print_board(color, board):
     }
 
     GREY = 237
-    DARK_SQ = 214
-    LIGHT_SQ = 94
+    DARK_SQ = 94
+    LIGHT_SQ = 214
     DARK_PC = 16
     LIGHT_PC = 231
     
