@@ -65,9 +65,11 @@ class Player:
             min_eval = float('inf')
             alpha = float('-inf')
             beta = float('inf')
-            depth = 3
+            depth = 4
 
-            for move in board.legal_moves:
+            legal_moves = list(board.legal_moves)
+            random.shuffle(legal_moves)
+            for move in legal_moves:
                 board.push(move)
                 if self.color == chess.WHITE:
                     eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK)
@@ -92,7 +94,9 @@ class Player:
         
         if maximizing_color == chess.WHITE:
             max_eval = float('-inf')
-            for move in board.legal_moves:
+            legal_moves = list(board.legal_moves)
+            random.shuffle(legal_moves)
+            for move in legal_moves:
                 board.push(move)
                 eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK)
                 board.pop()
@@ -103,7 +107,9 @@ class Player:
             return max_eval
         else:
             min_eval = float('inf')
-            for move in board.legal_moves:
+            legal_moves = list(board.legal_moves)
+            random.shuffle(legal_moves)
+            for move in legal_moves:
                 board.push(move)
                 eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE)
                 board.pop()
