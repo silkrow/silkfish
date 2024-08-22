@@ -24,8 +24,7 @@ class Evaluation:
             chess.KNIGHT: 3,
             chess.BISHOP: 3,
             chess.ROOK: 5,
-            chess.QUEEN: 9,
-            chess.KING: 5000
+            chess.QUEEN: 9
         }
         
         white_material = 0
@@ -50,8 +49,17 @@ class Evaluation:
         Returns:
             float: the evaluation of the current board.
         """
+        # Check for terminal states (checkmate, stalemate)
+        if board.is_checkmate():
+            if board.turn == chess.WHITE:
+                return float('-inf')  # Black wins
+            else:
+                return float('inf')   # White wins
+        elif board.is_stalemate() or board.is_insufficient_material():
+            return 0  # Draw
+
+        # Material count evaluation
         white_material, black_material = self.material_count(board)
 
+        # Basic evaluation based on material difference
         return white_material - black_material
-    
-

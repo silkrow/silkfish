@@ -82,6 +82,8 @@ class Player:
                 if self.color == chess.BLACK and eval < min_eval:
                     min_eval = eval
                     best_move = move
+            if best_move == None:
+                best_move = legal_moves[0]
             return best_move
 
         else:
