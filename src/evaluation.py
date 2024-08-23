@@ -39,8 +39,8 @@ class Evaluation:
                 if piece.piece_type is not chess.KING:
                     if square in center_squares:
                         piece_val += 0.04
-                    elif square in second_center:
-                        piece_val += 0.02
+                    # elif square in second_center:
+                    #     piece_val += 0.02
                 if piece.piece_type in (chess.KNIGHT, chess.BISHOP):
                     if square in corner_squares:
                         piece_val -= 0.05
