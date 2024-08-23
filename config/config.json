@@ -1,5 +1,5 @@
 {
-    "minimax_depth": 4,
+    "minimax_depth": 5,
     "capture_depth": 2,
     "evaluation_weights": {
       "material": 1.0,

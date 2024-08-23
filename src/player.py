@@ -18,6 +18,7 @@ class Player:
     def __init__ (self, type, conf_file=None):
         self.type = type
         self.color = None
+        self.nodes_searched = 0
     
         # Load configuration    
         if self.type == PlayerType.ENGINE:
@@ -60,6 +61,7 @@ class Player:
                     print("Illegal move. Please try again.")
 
         elif self.type == PlayerType.ENGINE:
+            self.nodes_searched = 0
             best_move = None
             max_eval = float('-inf')
             min_eval = float('inf')
@@ -84,6 +86,8 @@ class Player:
                     best_move = move
             if best_move == None:
                 best_move = legal_moves[0]
+            
+            print(f"Minimax nodes searched: {self.nodes_searched}")
             return best_move
 
         else:
@@ -91,6 +95,7 @@ class Player:
 
     ########## KEY LOGIC OF SEARCHING IN GAME TREE ##########
     def minimax(self, board, depth, alpha, beta, maximizing_color, capture_depth=0):
+        self.nodes_searched += 1
         if depth == 0 or board.is_game_over():
             return self.evaluation.evaluate(board)
         
