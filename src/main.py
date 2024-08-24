@@ -63,6 +63,9 @@ class Game:
         # Force an initialization of the board?
         board = chess.Board()
 
+        print("Game started, initial position: ")
+        display_unicode.print_board(board.turn, board)
+
         if self.ply1.color == chess.WHITE:
             white_player = self.ply1
             black_player = self.ply2

@@ -88,6 +88,10 @@ class Player:
                 best_move = legal_moves[0]
             
             print(f"Minimax nodes searched: {self.nodes_searched}")
+            if self.color == chess.WHITE:
+                print(f"White Engine eval: {max_eval}")
+            else:
+                print(f"Black Engine eval: {min_eval}")
             return best_move
 
         else:
