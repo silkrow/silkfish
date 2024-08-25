@@ -98,7 +98,7 @@ class Player:
             raise ValueError("Error: Player type invalid.")
 
     ########## KEY LOGIC OF SEARCHING IN GAME TREE ##########
-    def minimax(self, board, depth, alpha, beta, maximizing_color, capture_depth=0):
+    def minimax(self, board, depth, alpha, beta, maximizing_color):
         self.nodes_searched += 1
         if depth == 0 or board.is_game_over():
             return self.evaluation.evaluate(board)
@@ -110,12 +110,6 @@ class Player:
             for move in legal_moves:
                 board.push(move)
                 
-                # Check if the move is a capture
-                # is_capture = board.is_capture(move)
-                # if depth == 1 and is_capture and capture_depth < self.conf.config["capture_depth"]:
-                #     eval = self.minimax(board, depth, alpha, beta, chess.BLACK, capture_depth+1)
-                # else:
-                #     eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK)
                 eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK)
                 
                 board.pop()
@@ -131,12 +125,6 @@ class Player:
             for move in legal_moves:
                 board.push(move)
                 
-                # Check if the move is a capture
-                # is_capture = board.is_capture(move)
-                # if depth == 1 and is_capture and capture_depth < self.conf.config["capture_depth"]:
-                #     eval = self.minimax(board, depth, alpha, beta, chess.WHITE, capture_depth+1)
-                # else:
-                #     eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE)
                 eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE)
                 
                 board.pop()
