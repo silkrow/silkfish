@@ -112,6 +112,8 @@ class Player:
                 cap_moves.append(move)
         if len(cap_moves) == 0:
             return best_eval
+
+        cap_moves.sort(reverse=True, key=lambda x: self.move_score(board, x))
         for move in cap_moves:
             if maximizing_color == chess.WHITE:
                 eval = self.capture_minimax(board, depth - 1, chess.BLACK)
@@ -121,24 +123,66 @@ class Player:
                 best_eval = min(best_eval, eval)
         return best_eval
 
+    capture_score = {
+        (chess.KING, chess.QUEEN):50,
+        (chess.QUEEN, chess.QUEEN):51,
+        (chess.ROOK, chess.QUEEN):52,
+        (chess.BISHOP, chess.QUEEN):53,
+        (chess.KNIGHT, chess.QUEEN):54,
+        (chess.PAWN, chess.QUEEN):55,
+
+        (chess.KING, chess.ROOK):40,
+        (chess.QUEEN, chess.ROOK):41,
+        (chess.ROOK, chess.ROOK):42,
+        (chess.BISHOP, chess.ROOK):43,
+        (chess.KNIGHT, chess.ROOK):44,
+        (chess.PAWN, chess.ROOK):45,
+
+        (chess.KING, chess.BISHOP):30,
+        (chess.QUEEN, chess.BISHOP):31,
+        (chess.ROOK, chess.BISHOP):32,
+        (chess.BISHOP, chess.BISHOP):33,
+        (chess.KNIGHT, chess.BISHOP):34,
+        (chess.PAWN, chess.BISHOP):35,
+
+        (chess.KING, chess.KNIGHT):20,
+        (chess.QUEEN, chess.KNIGHT):21,
+        (chess.ROOK, chess.KNIGHT):22,
+        (chess.BISHOP, chess.KNIGHT):23,
+        (chess.KNIGHT, chess.KNIGHT):24,
+        (chess.PAWN, chess.KNIGHT):25,
+
+        (chess.KING, chess.PAWN):10,
+        (chess.QUEEN, chess.PAWN):11,
+        (chess.ROOK, chess.PAWN):12,
+        (chess.BISHOP, chess.PAWN):13,
+        (chess.KNIGHT, chess.PAWN):14,
+        (chess.PAWN, chess.PAWN):15
+    }
+
+    def move_score(self, board, move):
+        attacker = board.piece_at(move.from_square)
+        victim = board.piece_at(move.to_square)
+        if victim is None:
+            return 0
+        return self.capture_score.get((attacker.piece_type, victim.piece_type))
+
     ########## KEY LOGIC OF SEARCHING IN GAME TREE ##########
     def minimax(self, board, depth, alpha, beta, maximizing_color, capture_square=None):
         self.minimax_nodes_searched += 1
         
         if board.is_game_over():
             return self.evaluation.evaluate(board)
-        
-        if depth == 0:
-            if maximizing_color == chess.WHITE:
-                eval = self.capture_minimax(board, self.conf.config["capture_depth"], chess.BLACK)
-            else:
-                eval = self.capture_minimax(board, self.conf.config["capture_depth"], chess.WHITE)
-            return eval
 
         if maximizing_color == chess.WHITE:
+            if depth == 0:
+                eval = self.capture_minimax(board, self.conf.config["capture_depth"], chess.BLACK)
+                return eval
+
             max_eval = float('-inf')
             legal_moves = list(board.legal_moves)
-            random.shuffle(legal_moves)
+            legal_moves.sort(reverse=True, key=lambda x: self.move_score(board, x))
+
             for move in legal_moves:
                 board.push(move)
                 eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK, move.to_square)
@@ -152,9 +196,14 @@ class Player:
             return max_eval
 
         else:
+            if depth == 0:
+                eval = self.capture_minimax(board, self.conf.config["capture_depth"], chess.WHITE)
+                return eval
+
             min_eval = float('inf')
             legal_moves = list(board.legal_moves)
-            random.shuffle(legal_moves)
+            legal_moves.sort(reverse=True, key=lambda x: self.move_score(board, x))
+
             for move in legal_moves:
                 board.push(move)
                 eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE, move.to_square)
@@ -166,4 +215,3 @@ class Player:
             if depth == 1 and capture_square is not None and min_eval == float('inf'):
                 return self.evaluation.evaluate(board)
             return min_eval
-
