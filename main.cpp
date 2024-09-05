@@ -39,10 +39,10 @@ int minimax (Board& board, int depth, int alpha, int beta, Color color) {
 
 	movegen::legalmoves(moves, board);
 
+	/*
 	sort(moves.begin(), moves.end(), [board](auto a, auto b) {
 		if (!board.isCapture(b)) return true;
 		if (!board.isCapture(a)) return false;
-		return true;
 
 		// Enpassant is somehow included in the following implementation, however it might have bugs.
 		int a_val = capture_score[{board.at(a.from()).type(), board.at(a.to()).type() % 6}];
@@ -50,6 +50,7 @@ int minimax (Board& board, int depth, int alpha, int beta, Color color) {
 
 		return a_val >= b_val;
 	});
+	*/
 
 	if (color == Color::WHITE) {
 		int max_eval = -MAX_SCORE;
