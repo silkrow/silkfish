@@ -1,5 +1,6 @@
 import random
 import chess
+import time
 
 from enum import Enum, auto
 from configure import Configure
@@ -72,6 +73,8 @@ class Player:
 
             legal_moves = list(board.legal_moves)
             random.shuffle(legal_moves)
+
+            start_time = time.time()
             for move in legal_moves:
                 board.push(move)
                 if self.color == chess.WHITE:
@@ -85,6 +88,10 @@ class Player:
                 if self.color == chess.BLACK and eval < min_eval:
                     min_eval = eval
                     best_move = move
+            
+            end_time = time.time()
+            time_taken = end_time - start_time
+
             if best_move == None:
                 best_move = legal_moves[0]
             
@@ -94,6 +101,8 @@ class Player:
                 print(f"White Engine eval: {max_eval}")
             else:
                 print(f"Black Engine eval: {min_eval}")
+            
+            print(f"Time taken for move: {time_taken:.2f} seconds")
             return best_move
 
         else:
@@ -173,6 +182,9 @@ class Player:
         
         if board.is_game_over():
             return self.evaluation.evaluate(board)
+        
+        # if board.can_claim_draw(): # Time consumption concern
+        #     return 0
 
         if maximizing_color == chess.WHITE:
             if depth == 0:
