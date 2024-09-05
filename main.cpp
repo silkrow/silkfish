@@ -35,10 +35,10 @@ bool compare_moves (Move a, Move b) {
 	if (!board.isCapture(b)) return true;
 	if (!board.isCapture(a)) return false;
 
-	int af = board.at<Piece>(a.from()).type();
-	int at = board.at<Piece>(a.to()).type();
-	int bf = board.at<Piece>(b.from()).type();
-	int bt = board.at<Piece>(b.to()).type();
+	int af = (int) ((board.at<Piece>(a.from())).type());
+	int at = (int) ((board.at<Piece>(a.to())).type());
+	int bf = (int) ((board.at<Piece>(b.from())).type());
+	int bt = (int) ((board.at<Piece>(b.to())).type());
 
 	int a_val = capture_score[{af, at % 6}];
 	int b_val = capture_score[{bf, bt % 6}];
