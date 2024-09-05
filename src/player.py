@@ -165,7 +165,8 @@ class Player:
         if maximizing_color == chess.WHITE:
             max_eval = float('-inf')
             legal_moves = list(board.legal_moves)
-            legal_moves.sort(reverse=True, key=lambda x: self.move_score(board, x))
+            if depth > 1:
+                legal_moves.sort(reverse=True, key=lambda x: self.move_score(board, x))
 
             for move in legal_moves:
                 board.push(move)
@@ -181,7 +182,8 @@ class Player:
         else:
             min_eval = float('inf')
             legal_moves = list(board.legal_moves)
-            legal_moves.sort(reverse=True, key=lambda x: self.move_score(board, x))
+            if depth > 1:
+                legal_moves.sort(reverse=True, key=lambda x: self.move_score(board, x))
 
             for move in legal_moves:
                 board.push(move)
