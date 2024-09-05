@@ -11,6 +11,10 @@ long minimax_searched = 0;
 int evaluation(Board& board) {
 	int evaluation = 0;
 
+	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
+		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
+	}
+
 	for (int i = 0; i < BOARD_SIZE; i++) {
 		auto piece = board.at(Square((uint8_t)i));
 		if (piece != Piece::NONE) {
@@ -33,9 +37,22 @@ int minimax (Board& board, int depth, int alpha, int beta, Color color) {
 		return evaluation(board);
 	}
 
+	movegen::legalmoves(moves, board);
+
+	sort(moves.begin(), moves.end(), [board](auto a, auto b) {
+		if (!board.isCapture(b)) return true;
+		if (!board.isCapture(a)) return false;
+		return true;
+
+		// Enpassant is somehow included in the following implementation, however it might have bugs.
+		int a_val = capture_score[{board.at(a.from()).type(), board.at(a.to()).type() % 6}];
+		int b_val = capture_score[{board.at(b.from()).type(), board.at(b.to()).type() % 6}];
+
+		return a_val >= b_val;
+	});
+
 	if (color == Color::WHITE) {
 		int max_eval = -MAX_SCORE;
-		movegen::legalmoves(moves, board);
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
@@ -51,7 +68,6 @@ int minimax (Board& board, int depth, int alpha, int beta, Color color) {
 		return max_eval;
 	} else {
 		int min_eval = MAX_SCORE;
-		movegen::legalmoves(moves, board);
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
@@ -74,9 +90,10 @@ int main (int argc, char *argv[]) {
     Movelist moves;
 	Color turn = Color::WHITE;
 
-	string game_s = "";
+	string game_pgn = "";
+	int round = 1;
 
-	do {
+	while (board.isGameOver().first == GameResultReason::NONE) {
 		movegen::legalmoves(moves, board);
 		Move picked_move;
 		auto start = std::chrono::high_resolution_clock::now();
@@ -98,15 +115,19 @@ int main (int argc, char *argv[]) {
 		printf("nodes: %ld\n", minimax_searched);
 		printf("eval: %d\n", eval);
 
-		if (!moves.empty()) {
-			string s = uci::moveToSan(board, picked_move);
-			game_s = game_s + " " + s;
-			cout << game_s << endl;
-			board.makeMove(picked_move);
+		string s = uci::moveToSan(board, picked_move);
+		if (turn == Color::WHITE) {
+			game_pgn = game_pgn + " " + to_string(round) + ". " + s;
+		} else {
+			game_pgn = game_pgn + " " + s;
+			round++;
 		}
+		board.makeMove(picked_move);
+		cout << s << endl << endl;
 
 		turn = 1 - turn;
+	} 
 
-	} while (!moves.empty());
+	cout << game_pgn << endl;
     return 0;
 }
