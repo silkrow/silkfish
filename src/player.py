@@ -108,31 +108,7 @@ class Player:
         else:
             raise ValueError("Error: Player type invalid.")
 
-    def capture_minimax(self, board, depth, maximizing_color):
-        self.capture_nodes_searched += 1
-        cap_moves= []
-        best_eval = self.evaluation.evaluate(board)
-
-        if depth == 0:
-            return best_eval
-
-        for move in board.legal_moves:
-            if board.is_capture(move):
-                cap_moves.append(move)
-        if len(cap_moves) == 0:
-            return best_eval
-
-        cap_moves.sort(reverse=True, key=lambda x: self.move_score(board, x))
-        for move in cap_moves:
-            if maximizing_color == chess.WHITE:
-                eval = self.capture_minimax(board, depth - 1, chess.BLACK)
-                best_eval = max(best_eval, eval)
-            else: 
-                eval = self.capture_minimax(board, depth - 1, chess.WHITE)
-                best_eval = min(best_eval, eval)
-        return best_eval
-
-    capture_score = {
+    capture_score = { # For move ordering
         (chess.KING, chess.QUEEN):50,
         (chess.QUEEN, chess.QUEEN):51,
         (chess.ROOK, chess.QUEEN):52,
@@ -177,53 +153,43 @@ class Player:
         return self.capture_score.get((attacker.piece_type, victim.piece_type))
 
     ########## KEY LOGIC OF SEARCHING IN GAME TREE ##########
-    def minimax(self, board, depth, alpha, beta, maximizing_color, capture_square=None):
+    def minimax(self, board, depth, alpha, beta, maximizing_color):
         self.minimax_nodes_searched += 1
         
-        if board.is_game_over():
+        if depth == 0 or board.outcome(claim_draw = True) is not None:
             return self.evaluation.evaluate(board)
         
         # if board.can_claim_draw(): # Time consumption concern
         #     return 0
 
         if maximizing_color == chess.WHITE:
-            if depth == 0:
-                eval = self.capture_minimax(board, self.conf.config["capture_depth"], chess.BLACK)
-                return eval
-
             max_eval = float('-inf')
             legal_moves = list(board.legal_moves)
             legal_moves.sort(reverse=True, key=lambda x: self.move_score(board, x))
 
             for move in legal_moves:
                 board.push(move)
-                eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK, move.to_square)
+                eval = self.minimax(board, depth - 1, alpha, beta, chess.BLACK)
                 board.pop()
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, max_eval)
                 if beta <= alpha:
                     break
-            if depth == 1 and capture_square is not None and max_eval == float('-inf'):
-                return self.evaluation.evaluate(board)
+
             return max_eval
 
         else:
-            if depth == 0:
-                eval = self.capture_minimax(board, self.conf.config["capture_depth"], chess.WHITE)
-                return eval
-
             min_eval = float('inf')
             legal_moves = list(board.legal_moves)
             legal_moves.sort(reverse=True, key=lambda x: self.move_score(board, x))
 
             for move in legal_moves:
                 board.push(move)
-                eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE, move.to_square)
+                eval = self.minimax(board, depth - 1, alpha, beta, chess.WHITE)
                 board.pop()
                 min_eval = min(min_eval, eval)
                 beta = min(beta, min_eval)
                 if beta <= alpha:
                     break
-            if depth == 1 and capture_square is not None and min_eval == float('inf'):
-                return self.evaluation.evaluate(board)
+
             return min_eval
