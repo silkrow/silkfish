@@ -8,6 +8,8 @@ using namespace std;
 
 long minimax_searched = 0;
 
+Board board;
+
 int evaluation(Board& board) {
 	int evaluation = 0;
 
@@ -29,7 +31,22 @@ int evaluation(Board& board) {
 	return evaluation;
 }
 
-int minimax (Board& board, int depth, int alpha, int beta, Color color) {
+bool compare_moves (Move a, Move b) {
+	if (!board.isCapture(b)) return true;
+	if (!board.isCapture(a)) return false;
+
+	int af = board.at<Piece>(a.from()).type();
+	int at = board.at<Piece>(a.to()).type();
+	int bf = board.at<Piece>(b.from()).type();
+	int bt = board.at<Piece>(b.to()).type();
+
+	int a_val = capture_score[{af, at % 6}];
+	int b_val = capture_score[{bf, bt % 6}];
+
+	return a_val >= b_val;
+}
+
+int minimax (int depth, int alpha, int beta, Color color) {
 	minimax_searched++;
 	Movelist moves;
 
@@ -39,25 +56,14 @@ int minimax (Board& board, int depth, int alpha, int beta, Color color) {
 
 	movegen::legalmoves(moves, board);
 
-	/*
-	sort(moves.begin(), moves.end(), [board](auto a, auto b) {
-		if (!board.isCapture(b)) return true;
-		if (!board.isCapture(a)) return false;
-
-		// Enpassant is somehow included in the following implementation, however it might have bugs.
-		int a_val = capture_score[{board.at(a.from()).type(), board.at(a.to()).type() % 6}];
-		int b_val = capture_score[{board.at(b.from()).type(), board.at(b.to()).type() % 6}];
-
-		return a_val >= b_val;
-	});
-	*/
+	sort(moves.begin(), moves.end(), compare_moves);
 
 	if (color == Color::WHITE) {
 		int max_eval = -MAX_SCORE;
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int eval = minimax(board, depth - 1, alpha, beta, 1 - color);
+			int eval = minimax(depth - 1, alpha, beta, 1 - color);
 			board.unmakeMove(move);
 
 			max_eval = eval > max_eval ? eval:max_eval;
@@ -72,7 +78,7 @@ int minimax (Board& board, int depth, int alpha, int beta, Color color) {
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int eval = minimax(board, depth - 1, alpha, beta, 1 - color);
+			int eval = minimax(depth - 1, alpha, beta, 1 - color);
 			board.unmakeMove(move);
 
 			min_eval = eval < min_eval ? eval:min_eval;
@@ -87,7 +93,7 @@ int minimax (Board& board, int depth, int alpha, int beta, Color color) {
 
 int main (int argc, char *argv[]) {
 	int depth = atoi(argv[1]);
-    Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     Movelist moves;
 	Color turn = Color::WHITE;
 
@@ -102,7 +108,7 @@ int main (int argc, char *argv[]) {
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int move_eval = minimax(board, depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
+			int move_eval = minimax(depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
 			board.unmakeMove(move);
 
 			if ((turn == Color::WHITE && move_eval > eval) || (turn == Color::BLACK && move_eval < eval)) {
