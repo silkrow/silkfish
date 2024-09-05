@@ -1,0 +1,51 @@
+name: Chess Library
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  ChessLibrary:
+    name: ${{ matrix.name }} tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        name: ["Normal", "ASAN", "Undefined"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installing required packages
+        run: |
+          sudo apt-get update
+          g++ --version
+
+      - name: Installing Meson
+        run: |
+          sudo apt-get install python3-pip python3-setuptools ninja-build pipx
+          sudo pipx install meson
+
+      - name: Configuring Meson
+        run: |
+          meson setup build
+
+      - name: Normal Tests
+        if: matrix.name == 'Normal'
+        run: |
+          meson compile -C build
+          ./build/tests/tests
+
+      - name: ASAN Tests
+        if: matrix.name == 'ASAN'
+        run: |
+          meson configure build -Db_sanitize=address
+          meson compile -C build
+          ./build/tests/tests
+
+      - name: Undefined Tests
+        if: matrix.name == 'Undefined'
+        run: |
+          meson configure build -Db_sanitize=undefined
+          meson compile -C build
+          ./build/tests/tests
