@@ -104,17 +104,148 @@ int minimax (int depth, int alpha, int beta, Color color) {
 	}
 }
 
+void usage_error() {
+	cout << "Usage: ./silkrow <-m> <depth> \"{fen_string}\" or ./silkrow <-m> demo <depth>" << endl;
+	return;
+}
+
+Color fen_player_color(string& fen) {
+	size_t spacePos = fen.find(' ');
+    if (spacePos != string::npos) {
+        char toMove = fen[spacePos + 1];
+        if (toMove == 'w') {
+            return Color::WHITE;
+        } else if (toMove == 'b') {
+            return Color::BLACK;
+        }
+    }
+
+    throw std::invalid_argument("Invalid FEN string format");
+}
+
 int main (int argc, char *argv[]) {
-	int depth = atoi(argv[1]);
-    board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    Movelist moves;
-	Color turn = Color::WHITE;
+	int depth = DEFAULT_DEPTH;
+	string fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; // a test string 4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1 
+	bool demo_mode = false;
+	bool mute = false;
 
-	string game_pgn = "";
-	int round = 1;
+	if (argc == 1){
+		usage_error();
+		return 1;
+	}
 
-	while (board.isGameOver().first == GameResultReason::NONE) {
+    int arg_start = 1;
+    if (string(argv[1]) == "-m") {
+        mute = true;
+        arg_start = 2;
+    }
+
+	if (arg_start > argc - 1) {
+		usage_error();
+		return 1;
+	}
+
+	string second_arg = argv[arg_start];
+	if (second_arg == "demo") { // demo mode
+		demo_mode = true;
+		if (argc - 1 == arg_start + 1) {
+			string third_arg = argv[arg_start + 1];
+			try {
+				size_t pos;
+				depth = stoi(third_arg, &pos);
+				if (pos != third_arg.length()) {
+					usage_error();
+					return 1;
+				}
+			} catch (const std::invalid_argument&) {
+				usage_error();
+				return 1;
+    		} catch (const std::out_of_range&) {
+        		usage_error();
+				return 1;
+			}
+		}
+	} else { // customized fen 
+		try {
+			size_t pos;
+			depth = stoi(second_arg, &pos);
+			if (pos == second_arg.length()) {
+				arg_start++;
+			} else {
+				depth = DEFAULT_DEPTH;
+			}
+		} catch (const std::invalid_argument&) {
+		} catch (const std::out_of_range&) {
+		}
+
+		if (arg_start > argc - 1) { // check if there is fen string input
+			usage_error();
+			return 1;
+		}
+
+		fen_string = "";
+		for (int j = arg_start; j < argc; ++j) {
+        	fen_string += argv[j];
+        	if (j < argc - 1) {
+            	fen_string += " "; // Add a space between arguments
+        	}
+    	}
+	}
+
+	if (demo_mode) {
+        if (!mute) {
+            cout << "Running in demo mode with depth " << depth << ", engine vs engine." << endl;
+        }
+		board = Board(fen_string);
+		Movelist moves;
+		Color turn = Color::WHITE;
+
+		string game_pgn = "";
+		int round = 1;
+		while (board.isGameOver().first == GameResultReason::NONE) {
+			movegen::legalmoves(moves, board);
+			Move picked_move;
+			auto start = std::chrono::high_resolution_clock::now();
+			int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
+			for (int i = 0; i < moves.size(); i++) {
+				const auto move = moves[i];
+				board.makeMove(move);
+				int move_eval = minimax(depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
+				board.unmakeMove(move);
+
+				if ((turn == Color::WHITE && move_eval > eval) || (turn == Color::BLACK && move_eval < eval)) {
+					eval = move_eval;
+					picked_move = move;
+				} 
+			}
+			auto end = std::chrono::high_resolution_clock::now();
+			chrono::duration<double> duration = end - start;
+			if (!mute) {
+				cout << "Execution time: " << duration.count() << " seconds\n";
+				printf("nodes: %ld\n", minimax_searched);
+				printf("eval: %d\n", eval);
+			}
+			string move_s = uci::moveToSan(board, picked_move);
+			if (turn == Color::WHITE) {
+				game_pgn = game_pgn + " " + to_string(round) + ". " + move_s;
+			} else {
+				game_pgn = game_pgn + " " + move_s;
+				round++;
+			}
+			board.makeMove(picked_move);
+			if (!mute) {
+				cout << move_s << endl << endl;
+			}
+			turn = 1 - turn;
+		} 
+
+		cout << game_pgn << endl;
+	} else { // engine mode
+		Color turn = fen_player_color(fen_string);
+		board = Board(fen_string);
+		Movelist moves;
 		movegen::legalmoves(moves, board);
+		
 		Move picked_move;
 		auto start = std::chrono::high_resolution_clock::now();
 		int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
@@ -130,24 +261,18 @@ int main (int argc, char *argv[]) {
 			} 
 		}
 		auto end = std::chrono::high_resolution_clock::now();
-    	chrono::duration<double> duration = end - start;
-    	cout << "Execution time: " << duration.count() << " seconds\n";
-		printf("nodes: %ld\n", minimax_searched);
-		printf("eval: %d\n", eval);
-
-		string s = uci::moveToSan(board, picked_move);
-		if (turn == Color::WHITE) {
-			game_pgn = game_pgn + " " + to_string(round) + ". " + s;
-		} else {
-			game_pgn = game_pgn + " " + s;
-			round++;
+		chrono::duration<double> duration = end - start;
+		if (!mute) {
+			cout << "Execution time: " << duration.count() << " seconds\n";
+			printf("nodes: %ld\n", minimax_searched);
+			printf("eval: %d\n", eval);
+			cout << "Engine depth: " << depth << endl;
 		}
+		string move_s = uci::moveToSan(board, picked_move);
 		board.makeMove(picked_move);
-		cout << s << endl << endl;
+		cout << move_s << endl;
+	}
 
-		turn = 1 - turn;
-	} 
 
-	cout << game_pgn << endl;
     return 0;
 }

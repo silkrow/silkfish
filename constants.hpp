@@ -8,6 +8,8 @@ const int BOARD_SIZE = 64;
 
 const int CASTLE = 10;
 
+const int DEFAULT_DEPTH = 4;
+
 const int PST[6][BOARD_SIZE] = {{// PAWN
     0,  0,  0,  0,  0,  0,  0,  0,
     150, 150, 150, 150, 150, 150, 150, 150,
