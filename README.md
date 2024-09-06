@@ -23,14 +23,14 @@ Now, with the compiled engine (```silkfish``` executable) and the installed Pyth
 ## Use the Engine
 **After compilation**, you can use the engine without a GUI, there're two possible ways.
 
-1. The first way to use the engine is to enjoy seeing a game played by itself,
+The first way to use the engine is to enjoy seeing a game played by itself,
 
     ./silkfish <-flag> demo <depth>
 
     e.g.
     ./silkfish demo 6
 
-2. The second way to use the engine is to give it a position in the format of FEN, and receive an output from it.
+The second way to use the engine is to give it a position in the format of FEN, and receive an output from it.
 
     ./silkfish <-flag> <depth> {fen_string} 
 
