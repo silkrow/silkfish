@@ -14,7 +14,15 @@ def print_board(color, board):
         "p": "♙",
     }
 
-    side_color = 237
+    GREY = 237
+    DARK_SQ = 94
+    LIGHT_SQ = 214
+    DARK_PC = 16
+    LIGHT_PC = 231
+    
+
+    side_color = GREY
+
 
     def colored(text, text_color, background_color):
         text = " " + text # Padding to center the pieces
@@ -28,14 +36,14 @@ def print_board(color, board):
             for file in range(8):
                 square = chess.square(file, rank)
                 piece = board.piece_at(square)
-                square_color = 214 if (rank + file) % 2 == 0 else 94
-                piece_color = 231
+                square_color = DARK_SQ if (rank + file) % 2 == 0 else LIGHT_SQ
+                piece_color = LIGHT_PC
                 if piece == None:
                     piece_symbol = " "
                 else:
                     piece_symbol = UNICODE_PIECE_SYMBOLS.get(piece.symbol().lower())
                     if piece.symbol().islower():
-                        piece_color = 16
+                        piece_color = DARK_PC
                 square_content = colored(piece_symbol, piece_color, square_color)
                 row.append(square_content)
             print(f"\x1b[0m {rank + 1}\x1b[48;5;{side_color}m {' '.join(row)} \x1b[48;5;{side_color}m \x1b[0m ")
@@ -48,14 +56,14 @@ def print_board(color, board):
             for file in range(8):
                 square = chess.square(file, rank)
                 piece = board.piece_at(square)
-                square_color = 214 if (rank + file) % 2 == 0 else 94
-                piece_color = 231
+                square_color = DARK_SQ if (rank + file) % 2 == 0 else LIGHT_SQ
+                piece_color = LIGHT_PC
                 if piece == None:
                     piece_symbol = " "
                 else:
                     piece_symbol = UNICODE_PIECE_SYMBOLS.get(piece.symbol().lower())
                     if piece.symbol().islower():
-                        piece_color = 16
+                        piece_color = DARK_PC
                 square_content = colored(piece_symbol, piece_color, square_color)
                 row.append(square_content)
             print(f"\x1b[0m {8 - rank}\x1b[48;5;{side_color}m {' '.join(row)} \x1b[48;5;{side_color}m \x1b[0m ")
