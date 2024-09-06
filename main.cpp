@@ -17,6 +17,10 @@ int evaluation(Board& board) {
 		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
 	}
 
+	if (board.isGameOver().second == GameResult::DRAW) {
+		return 0;
+	}
+
 	for (int i = 0; i < BOARD_SIZE; i++) {
 		auto piece = board.at(Square((uint8_t)i));
 		if (piece != Piece::NONE) {
@@ -32,18 +36,27 @@ int evaluation(Board& board) {
 }
 
 bool compare_moves (Move a, Move b) {
-	if (!board.isCapture(b)) return true;
-	if (!board.isCapture(a)) return false;
+	int a_val = 0, b_val = 0;
 
-	int af = (int) ((board.at<Piece>(a.from())).type());
-	int at = (int) ((board.at<Piece>(a.to())).type());
-	int bf = (int) ((board.at<Piece>(b.from())).type());
-	int bt = (int) ((board.at<Piece>(b.to())).type());
+	if (a == Move::CASTLING) a_val = CASTLE; // Castle is encoded as king capturing rook in the library!
+	else if (board.isCapture(a)) {
+		int af = (int)((board.at<Piece>(a.from())).type());
+		int at = (int)((board.at<Piece>(a.to())).type());
+		
+		std::pair<int, int> key = std::make_pair(af, at % 6);
+		a_val = capture_score[key];
+	}
 
-	int a_val = capture_score[{af, at % 6}];
-	int b_val = capture_score[{bf, bt % 6}];
+	if (b == Move::CASTLING) b_val = CASTLE;
+	else if (board.isCapture(b)) {
+		int bf = (int)((board.at<Piece>(b.from())).type());
+		int bt = (int)((board.at<Piece>(b.to())).type());
+		
+		std::pair<int, int> key = std::make_pair(bf, bt % 6);
+		b_val = capture_score[key];
+	}
 
-	return a_val >= b_val;
+    return a_val > b_val;
 }
 
 int minimax (int depth, int alpha, int beta, Color color) {
