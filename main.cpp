@@ -138,7 +138,7 @@ Color fen_player_color(string& fen) {
 int main (int argc, char *argv[]) {
 	int depth = DEFAULT_DEPTH;
 	string fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
-	fen_string = "4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1"; // for testing purpose
+	// fen_string = "4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1"; // for testing purpose
 	bool demo_mode = false;
 	bool mute = false;
 
