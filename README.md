@@ -4,7 +4,7 @@ To compile
 
 Usage
     
-    ./silkrow <-m> <depth> \"{fen_string}\" or ./silkrow <-m> demo <depth>
+    ./silkrow <-m> <depth> {fen_string} or ./silkrow <-m> demo <depth>
 
 For example, 
 
