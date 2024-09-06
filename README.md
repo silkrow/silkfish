@@ -1,4 +1,5 @@
 # Silkfish
+![silkfish](images/logo64.gif)
 
 ## Compile the Engine
 ***silkfish*** engine is written in c++, so you do need a ```g++``` compiler to compile it. 
