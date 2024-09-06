@@ -2,6 +2,10 @@ To compile
 
     g++ -std=c++17 -O3 -march=native -o silkfish main.cpp
 
-To use, pass the depth of minimax as the command line argument. Below is when using ```depth=6```
+Usage
+    
+    ./silkrow <-m> <depth> \"{fen_string}\" or ./silkrow <-m> demo <depth>
 
-    ./silkfish 6
+For example, 
+
+    ./silkrow demo 7
