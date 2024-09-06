@@ -1,5 +1,5 @@
-# Silkfish
-![silkfish](images/logo64.gif)
+<h1 style="display: inline;">Silkfish</h1>
+<img src="images/logo64.gif" alt="Silkfish Logo" style="vertical-align: middle;"/>
 
 ## Compile the Engine
 ***silkfish*** engine is written in c++, so you do need a ```g++``` compiler to compile it. 
