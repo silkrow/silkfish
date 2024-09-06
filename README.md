@@ -39,6 +39,10 @@ The second way to use the engine is to give it a position in the format of FEN, 
 
     e.g.
     ./silkfish -m 7 4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1
+
+This is how the command line GUI looks like:
+
+![gui](images/gui.png)
 ### 3.1 Flags
 No matter how many flags you pass, pass it with a single ```-```, for example, to use flag ```a``` and ```m```, you can either do ```-am``` or ```-ma```.
 
