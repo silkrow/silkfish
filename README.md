@@ -42,7 +42,7 @@ The second way to use the engine is to give it a position in the format of FEN, 
 
 This is how the command line GUI looks like:
 
-![gui](images/gui.png)
+<img src="images/gui.png" alt="GUI" style="width: 300px;"/>
 ### 3.1 Flags
 No matter how many flags you pass, pass it with a single ```-```, for example, to use flag ```a``` and ```m```, you can either do ```-am``` or ```-ma```.
 
