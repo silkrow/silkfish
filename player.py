@@ -1,6 +1,6 @@
-import random
-import chess
+import sys
 import time
+import threading
 import subprocess
 
 from enum import Enum, auto
@@ -25,6 +25,17 @@ class Player:
         Assuming the given color input is valid.
         """
         self.color = color
+
+    def spinner(self):
+        while not task_done:
+            for symbol in ['/', '|', '\\', '-']:
+                sys.stdout.write('\rsilkfish is thinking ' + symbol)
+                sys.stdout.flush()
+                time.sleep(0.2)
+    def run_engine(self, command):
+        global output
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output = result.stdout
     
     def get_move(self, board):
         """
@@ -52,9 +63,22 @@ class Player:
             depth = 7
             command = ['./silkfish', str(depth), board.fen()]
 
-            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            global task_done, output
+            task_done = False
+            output = None
 
-            output = result.stdout
+            spinner_thread = threading.Thread(target=self.spinner)
+            spinner_thread.start()
+
+            run_engine_thread = threading.Thread(target=self.run_engine, args=(command,))
+            run_engine_thread.start()
+            run_engine_thread.join()
+
+            task_done = True
+            spinner_thread.join()
+
+            sys.stdout.write('\r' + ' ' * 10 + '\r')
+            sys.stdout.flush()
 
             best_move = output.strip().split('\n')[-1]
 
