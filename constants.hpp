@@ -3,6 +3,8 @@
 #include <map>
 
 const int MAX_SCORE = 100000;
+const int W_WIN_THRE = MAX_SCORE - 50;
+const int B_WIN_THRE = -W_WIN_THRE;
 
 const int BOARD_SIZE = 64;
 

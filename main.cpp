@@ -13,12 +13,12 @@ Board board;
 int evaluation(Board& board) {
 	int evaluation = 0;
 
-	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
-		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
-	}
-
 	if (board.isGameOver().second == GameResult::DRAW) {
 		return 0;
+	}
+
+	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
+		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
 	}
 
 	for (int i = 0; i < BOARD_SIZE; i++) {
@@ -67,6 +67,14 @@ int minimax (int depth, int alpha, int beta, Color color) {
 		return evaluation(board);
 	}
 
+	if (board.isGameOver().second == GameResult::DRAW) {
+		return 0;
+	}
+
+	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
+		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
+	}
+
 	movegen::legalmoves(moves, board);
 
 	sort(moves.begin(), moves.end(), compare_moves);
@@ -85,6 +93,8 @@ int minimax (int depth, int alpha, int beta, Color color) {
 			if (beta <= alpha) break;
 		}
 
+		if (max_eval < B_WIN_THRE) return max_eval + 1;
+		else if (max_eval > W_WIN_THRE) return max_eval - 1;
 		return max_eval;
 	} else {
 		int min_eval = MAX_SCORE;
@@ -100,6 +110,8 @@ int minimax (int depth, int alpha, int beta, Color color) {
 			if (beta <= alpha) break;
 		}
 
+		if (min_eval < B_WIN_THRE) return min_eval + 1;
+		else if (min_eval > W_WIN_THRE) return min_eval - 1;
 		return min_eval;
 	}
 }
@@ -125,7 +137,8 @@ Color fen_player_color(string& fen) {
 
 int main (int argc, char *argv[]) {
 	int depth = DEFAULT_DEPTH;
-	string fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; // a test string 4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1 
+	string fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
+	fen_string = "4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1"; // for testing purpose
 	bool demo_mode = false;
 	bool mute = false;
 
@@ -192,19 +205,22 @@ int main (int argc, char *argv[]) {
     	}
 	}
 
+	// Main logic
 	if (demo_mode) {
         if (!mute) {
             cout << "Running in demo mode with depth " << depth << ", engine vs engine." << endl;
         }
 		board = Board(fen_string);
 		Movelist moves;
-		Color turn = Color::WHITE;
+		Color turn = fen_player_color(fen_string);
 
 		string game_pgn = "";
 		int round = 1;
 		while (board.isGameOver().first == GameResultReason::NONE) {
 			movegen::legalmoves(moves, board);
 			Move picked_move;
+			bool move_found = false;
+
 			auto start = std::chrono::high_resolution_clock::now();
 			int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
 			for (int i = 0; i < moves.size(); i++) {
@@ -216,9 +232,11 @@ int main (int argc, char *argv[]) {
 				if ((turn == Color::WHITE && move_eval > eval) || (turn == Color::BLACK && move_eval < eval)) {
 					eval = move_eval;
 					picked_move = move;
+					move_found = true;
 				} 
 			}
 			auto end = std::chrono::high_resolution_clock::now();
+			if (!move_found) picked_move = moves[0];
 			chrono::duration<double> duration = end - start;
 			if (!mute) {
 				cout << "Execution time: " << duration.count() << " seconds\n";
@@ -245,8 +263,9 @@ int main (int argc, char *argv[]) {
 		board = Board(fen_string);
 		Movelist moves;
 		movegen::legalmoves(moves, board);
-		
 		Move picked_move;
+		bool move_found = false;
+
 		auto start = std::chrono::high_resolution_clock::now();
 		int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
 		for (int i = 0; i < moves.size(); i++) {
@@ -258,8 +277,10 @@ int main (int argc, char *argv[]) {
 			if ((turn == Color::WHITE && move_eval > eval) || (turn == Color::BLACK && move_eval < eval)) {
 				eval = move_eval;
 				picked_move = move;
+				move_found = true;
 			} 
 		}
+		if (!move_found) picked_move = moves[0];
 		auto end = std::chrono::high_resolution_clock::now();
 		chrono::duration<double> duration = end - start;
 		if (!mute) {
@@ -269,10 +290,8 @@ int main (int argc, char *argv[]) {
 			cout << "Engine depth: " << depth << endl;
 		}
 		string move_s = uci::moveToSan(board, picked_move);
-		board.makeMove(picked_move);
+		// board.makeMove(picked_move);
 		cout << move_s << endl;
 	}
-
-
     return 0;
 }
