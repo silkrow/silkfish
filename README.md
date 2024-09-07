@@ -58,7 +58,7 @@ This is a test containing 111 positions, each position is expected to be solved 
 
 Below is a result table of ```silkfish``` on the ERET test.
 
-| commit hash   | position passed (out of 111)   | pass rate   |
-|------------|------------|------------|
-| 93f488c | 13 (without time limit)| 11.71% |
-| aa7f91f | 11 | 9.91% |
+| Commit Hash   | Position Passed (out of 111)   | Pass Rate   | Date |
+|------------|------------|------------|------------|
+| 93f488c | 13 (without time limit)| 11.71% | 2024.9.6 |
+| aa7f91f | 11 | 9.91% | 2024.9.7 |
