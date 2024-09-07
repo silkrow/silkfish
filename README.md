@@ -3,6 +3,12 @@
   <img src="images/logo64.gif" alt="Silkfish Logo" style="vertical-align: middle;"/>
 </h1>
 
+TODO:
+
+[ ] Implement the engine to support UCI.
+[ ] Deploy the engine on lichess-bot, following [https://github.com/lichess-bot-devs/lichess-bot](https://github.com/lichess-bot-devs/lichess-bot).
+[ ] Rewrite the input parsing system of ```silkfish```, support flags for minimax depth, quiescence search depth, time limitation, output mute, and mode selection.
+
 ## 1. Compile the Engine
 ***silkfish*** engine is written in c++, so you do need a ```g++``` compiler to compile it. 
 
