@@ -11,7 +11,7 @@ const int BOARD_SIZE = 64;
 const int CASTLE = 10;
 
 const int DEFAULT_DEPTH_MM = 4;
-const int DEFAULT_DEPTH_Q = 4;
+const int DEFAULT_DEPTH_Q = 3;
 
 const int PIECE_VAL[6] = {1, 3, 3, 5, 9, 0};
 
