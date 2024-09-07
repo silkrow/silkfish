@@ -56,10 +56,9 @@ This is a test containing 111 positions, each position is expected to be solved 
 
     python3 test_eret.py
 
-Note that the time limitation is not applied in this testing script. 
+Below is a result table of ```silkfish``` on the ERET test.
 
-2024.9.6 (No time limit, depth=7): 
-
-    13/111
-    11.71%
+| commit hash   | position passed (out of 111)   | pass rate   |
+|------------|------------|------------|
+| 93f488c | 13 (without time limit)| 11.71% |
 

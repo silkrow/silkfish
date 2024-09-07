@@ -10,6 +10,8 @@ using namespace std;
 long minimax_searched = 0;
 long quiescence_searched = 0;
 int quiescence_depth = DEFAULT_DEPTH_Q;
+float time_limit = 15.0;
+auto start = std::chrono::high_resolution_clock::now();
 
 Board board;
 
@@ -87,6 +89,16 @@ bool appear_quiet() {
 
 int quiescence_search (int q_depth, int alpha, int beta, Color color) {
 	quiescence_searched++;
+	
+	// Force quit if time is up
+	if (time_limit > 0) {
+		auto end = std::chrono::high_resolution_clock::now();
+		chrono::duration<double> duration = end - start;
+		if (duration.count() > time_limit) {
+			return evaluation(board);
+		}
+	}
+
 	if (q_depth == 0 || appear_quiet()) return evaluation(board);
 
 	Movelist moves;
@@ -139,6 +151,16 @@ int quiescence_search (int q_depth, int alpha, int beta, Color color) {
 
 int minimax (int mm_depth, int alpha, int beta, Color color) {
 	minimax_searched++;
+
+	// Force quit if time is up
+	if (time_limit > 0) {
+		auto end = std::chrono::high_resolution_clock::now();
+		chrono::duration<double> duration = end - start;
+		if (duration.count() > time_limit) {
+			return evaluation(board);
+		}
+	}
+
 	Movelist moves;
 	movegen::legalmoves(moves, board);
 	sort(moves.begin(), moves.end(), compare_moves);
@@ -337,7 +359,7 @@ int main (int argc, char *argv[]) {
 			Move picked_move;
 			minimax_searched = 0;
 			quiescence_searched = 0;
-			auto start = std::chrono::high_resolution_clock::now();
+			start = std::chrono::high_resolution_clock::now();
 			int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE; // Supposed to be assigned later
 			int eval1 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
 			int eval2 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
@@ -417,7 +439,7 @@ int main (int argc, char *argv[]) {
 		Move picked_move;
 		minimax_searched = 0;
 		quiescence_searched = 0;
-		auto start = std::chrono::high_resolution_clock::now();
+		start = std::chrono::high_resolution_clock::now();
 		int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE; // Supposed to be assigned later
 		int eval1 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
 		int eval2 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
