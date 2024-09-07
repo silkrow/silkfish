@@ -10,7 +10,10 @@ const int BOARD_SIZE = 64;
 
 const int CASTLE = 10;
 
-const int DEFAULT_DEPTH = 4;
+const int DEFAULT_DEPTH_MM = 4;
+const int DEFAULT_DEPTH_Q = 4;
+
+const int PIECE_VAL[6] = {1, 3, 3, 5, 9, 0};
 
 const int PST[6][BOARD_SIZE] = {{// PAWN
     0,  0,  0,  0,  0,  0,  0,  0,

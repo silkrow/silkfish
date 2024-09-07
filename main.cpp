@@ -7,6 +7,8 @@ using namespace chess;
 using namespace std;
 
 long minimax_searched = 0;
+long quiescence_searched = 0;
+int quiescence_depth = DEFAULT_DEPTH_Q;
 
 Board board;
 
@@ -59,13 +61,35 @@ bool compare_moves (Move a, Move b) {
     return a_val > b_val;
 }
 
-int minimax (int depth, int alpha, int beta, Color color) {
-	minimax_searched++;
-	Movelist moves;
+bool appear_quiet() {
+	if (board.inCheck())
+		return false;
 
-	if (depth == 0) {
-		return evaluation(board);
+	Movelist moves;
+	movegen::legalmoves(moves, board);
+	for (int i = 0; i < moves.size(); i++) {
+		const auto move = moves[i];
+		board.makeMove(move);
+		if (board.isCapture(move)) {
+			int attacker_val = PIECE_VAL[(int)((board.at<Piece>(move.from())).type())];
+			int victim_val = PIECE_VAL[(int)((board.at<Piece>(move.from())).type())];
+			if (attacker_val < victim_val) {
+				board.unmakeMove(move);
+				return false;
+			}
+		}
+		board.unmakeMove(move);
 	}
+
+	return true;
+}
+
+int quiescence_search (int q_depth, int alpha, int beta, Color color) {
+	quiescence_searched++;
+	if (q_depth == 0 || appear_quiet()) return evaluation(board);
+
+	Movelist moves;
+	movegen::legalmoves(moves, board);
 
 	if (board.isGameOver().second == GameResult::DRAW) {
 		return 0;
@@ -75,16 +99,12 @@ int minimax (int depth, int alpha, int beta, Color color) {
 		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
 	}
 
-	movegen::legalmoves(moves, board);
-
-	sort(moves.begin(), moves.end(), compare_moves);
-
 	if (color == Color::WHITE) {
 		int max_eval = -MAX_SCORE;
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int eval = minimax(depth - 1, alpha, beta, 1 - color);
+			int eval = quiescence_search(q_depth, alpha, beta, 1 - color);
 			board.unmakeMove(move);
 
 			max_eval = eval > max_eval ? eval:max_eval;
@@ -101,7 +121,98 @@ int minimax (int depth, int alpha, int beta, Color color) {
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int eval = minimax(depth - 1, alpha, beta, 1 - color);
+			int eval = quiescence_search(q_depth, alpha, beta, 1 - color);
+			board.unmakeMove(move);
+
+			min_eval = eval < min_eval ? eval:min_eval;
+			beta = beta < min_eval ? beta:min_eval;
+
+			if (beta <= alpha) break;
+		}
+
+		if (min_eval < B_WIN_THRE) return min_eval + 1;
+		else if (min_eval > W_WIN_THRE) return min_eval - 1;
+		return min_eval;
+	}
+}
+
+int minimax (int mm_depth, int alpha, int beta, Color color) {
+	minimax_searched++;
+	Movelist moves;
+	movegen::legalmoves(moves, board);
+	sort(moves.begin(), moves.end(), compare_moves);
+
+	if (mm_depth == 0) {
+		if (appear_quiet()) {
+			return evaluation(board);
+		} else {
+			if (color == Color::WHITE) {
+				int max_eval = -MAX_SCORE;
+				for (int i = 0; i < moves.size(); i++) {
+					const auto move = moves[i];
+					board.makeMove(move);
+					int eval = quiescence_search(DEFAULT_DEPTH_Q, alpha, beta, 1 - color);
+					board.unmakeMove(move);
+
+					max_eval = eval > max_eval ? eval:max_eval;
+					alpha = alpha > max_eval ? alpha:max_eval;
+
+					if (beta <= alpha) break;
+				}
+				if (max_eval < B_WIN_THRE) return max_eval + 1;
+				else if (max_eval > W_WIN_THRE) return max_eval - 1;
+				return max_eval;
+			} else {
+				int min_eval = MAX_SCORE;
+				for (int i = 0; i < moves.size(); i++) {
+					const auto move = moves[i];
+					board.makeMove(move);
+					int eval = quiescence_search(quiescence_depth, alpha, beta, 1 - color);
+					board.unmakeMove(move);
+
+					min_eval = eval < min_eval ? eval:min_eval;
+					beta = beta < min_eval ? beta:min_eval;
+
+					if (beta <= alpha) break;
+				}
+				if (min_eval < B_WIN_THRE) return min_eval + 1;
+				else if (min_eval > W_WIN_THRE) return min_eval - 1;
+				return min_eval;
+			}
+		}
+	}
+
+	if (board.isGameOver().second == GameResult::DRAW) {
+		return 0;
+	}
+
+	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
+		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
+	}
+
+	if (color == Color::WHITE) {
+		int max_eval = -MAX_SCORE;
+		for (int i = 0; i < moves.size(); i++) {
+			const auto move = moves[i];
+			board.makeMove(move);
+			int eval = minimax(mm_depth - 1, alpha, beta, 1 - color);
+			board.unmakeMove(move);
+
+			max_eval = eval > max_eval ? eval:max_eval;
+			alpha = alpha > max_eval ? alpha:max_eval;
+
+			if (beta <= alpha) break;
+		}
+
+		if (max_eval < B_WIN_THRE) return max_eval + 1;
+		else if (max_eval > W_WIN_THRE) return max_eval - 1;
+		return max_eval;
+	} else {
+		int min_eval = MAX_SCORE;
+		for (int i = 0; i < moves.size(); i++) {
+			const auto move = moves[i];
+			board.makeMove(move);
+			int eval = minimax(mm_depth - 1, alpha, beta, 1 - color);
 			board.unmakeMove(move);
 
 			min_eval = eval < min_eval ? eval:min_eval;
@@ -117,7 +228,7 @@ int minimax (int depth, int alpha, int beta, Color color) {
 }
 
 void usage_error() {
-	cout << "Usage: ./silkrow <-m> <depth> \"{fen_string}\" or ./silkrow <-m> demo <depth>" << endl;
+	cout << "Usage: ./silkrow <-m> <mm_depth> \"{fen_string}\" or ./silkrow <-m> demo <mm_depth>" << endl;
 	return;
 }
 
@@ -136,7 +247,7 @@ Color fen_player_color(string& fen) {
 }
 
 int main (int argc, char *argv[]) {
-	int depth = DEFAULT_DEPTH;
+	int mm_depth = DEFAULT_DEPTH_MM;
 	string fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
 	// fen_string = "4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1"; // for testing purpose
 	bool demo_mode = false;
@@ -165,7 +276,7 @@ int main (int argc, char *argv[]) {
 			string third_arg = argv[arg_start + 1];
 			try {
 				size_t pos;
-				depth = stoi(third_arg, &pos);
+				mm_depth = stoi(third_arg, &pos);
 				if (pos != third_arg.length()) {
 					usage_error();
 					return 1;
@@ -181,11 +292,11 @@ int main (int argc, char *argv[]) {
 	} else { // customized fen 
 		try {
 			size_t pos;
-			depth = stoi(second_arg, &pos);
+			mm_depth = stoi(second_arg, &pos);
 			if (pos == second_arg.length()) {
 				arg_start++;
 			} else {
-				depth = DEFAULT_DEPTH;
+				mm_depth = DEFAULT_DEPTH_MM;
 			}
 		} catch (const std::invalid_argument&) {
 		} catch (const std::out_of_range&) {
@@ -208,7 +319,7 @@ int main (int argc, char *argv[]) {
 	// Main logic
 	if (demo_mode) {
         if (!mute) {
-            cout << "Running in demo mode with depth " << depth << ", engine vs engine." << endl;
+            cout << "Running in demo mode with mm_depth " << mm_depth << ", q_depth " << quiescence_depth << ", engine vs engine." << endl;
         }
 		board = Board(fen_string);
 		Movelist moves;
@@ -219,6 +330,9 @@ int main (int argc, char *argv[]) {
 		while (board.isGameOver().first == GameResultReason::NONE) {
 			movegen::legalmoves(moves, board);
 			Move picked_move;
+			minimax_searched = 0;
+			quiescence_searched = 0;
+
 			bool move_found = false;
 
 			auto start = std::chrono::high_resolution_clock::now();
@@ -226,7 +340,7 @@ int main (int argc, char *argv[]) {
 			for (int i = 0; i < moves.size(); i++) {
 				const auto move = moves[i];
 				board.makeMove(move);
-				int move_eval = minimax(depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
+				int move_eval = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
 				board.unmakeMove(move);
 
 				if ((turn == Color::WHITE && move_eval > eval) || (turn == Color::BLACK && move_eval < eval)) {
@@ -240,7 +354,8 @@ int main (int argc, char *argv[]) {
 			chrono::duration<double> duration = end - start;
 			if (!mute) {
 				cout << "Execution time: " << duration.count() << " seconds\n";
-				printf("nodes: %ld\n", minimax_searched);
+				printf("minimax nodes: %ld\n", minimax_searched);
+				printf("quiescence nodes: %ld\n", quiescence_searched);
 				printf("eval: %d\n", eval);
 			}
 			string move_s = uci::moveToSan(board, picked_move);
@@ -271,7 +386,7 @@ int main (int argc, char *argv[]) {
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int move_eval = minimax(depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
+			int move_eval = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
 			board.unmakeMove(move);
 
 			if ((turn == Color::WHITE && move_eval > eval) || (turn == Color::BLACK && move_eval < eval)) {
@@ -285,9 +400,10 @@ int main (int argc, char *argv[]) {
 		chrono::duration<double> duration = end - start;
 		if (!mute) {
 			cout << "Execution time: " << duration.count() << " seconds\n";
-			printf("nodes: %ld\n", minimax_searched);
+			printf("minimax nodes: %ld\n", minimax_searched);
+			printf("quiescence nodes: %ld\n", quiescence_searched);
 			printf("eval: %d\n", eval);
-			cout << "Engine depth: " << depth << endl;
+			cout << "Engine mm_depth: " << mm_depth << endl;
 		}
 		string move_s = uci::moveToSan(board, picked_move);
 		// board.makeMove(picked_move);
