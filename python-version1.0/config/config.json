@@ -1,9 +1,0 @@
-{
-    "minimax_depth": 6,
-    "capture_depth": 0,
-    "evaluation_weights": {
-      "material": 1.0,
-      "mobility": 0.5,
-      "pawn_structure": 0.3
-    }
-}
