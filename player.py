@@ -60,7 +60,7 @@ class Player:
                     print("Illegal move. Please try again.")
 
         elif self.type == PlayerType.ENGINE:
-            depth = 7
+            depth = 6
             command = ['./silkfish', str(depth), board.fen()]
 
             global task_done, output
