@@ -48,3 +48,18 @@ The second way to use the engine is to give it a position in the format of FEN, 
 No matter how many flags you pass, pass it with a single ```-```, for example, to use flag ```a``` and ```m```, you can either do ```-am``` or ```-ma```.
 
 1. ```m```: Mute the output of engine (expect the final results).
+
+## 4. Testing
+
+### 4.1 Eigenmann Rapid Engine Test
+This is a test containing 111 positions, each position is expected to be solved in 15 seconds. Run it with 
+
+    python3 test_eret.py
+
+Note that the time limitation is not applied in this testing script. 
+
+2024.9.6 (No time limit, depth=7): 
+
+    13/111
+    11.71%
+

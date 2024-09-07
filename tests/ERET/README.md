@@ -1,0 +1,1 @@
+The Eigenmann Rapid Engine Test (ERET), designed by Walter Eigenmann, is a collection of 111 test-positions covering a wide range of chess motives with unique solutions. ERET was published in the Glarean Magazin in March 2017. The number of correct solutions in 15 seconds per position is the result to roughly compare engine skills.
