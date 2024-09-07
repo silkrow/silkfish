@@ -2,6 +2,7 @@
 #include "constants.hpp"
 
 #include <chrono>
+#include <random>
 
 using namespace chess;
 using namespace std;
@@ -316,6 +317,10 @@ int main (int argc, char *argv[]) {
     	}
 	}
 
+	random_device rd;
+	mt19937 gen(rd());
+	uniform_int_distribution<> distr(0, 9);
+
 	// Main logic
 	if (demo_mode) {
         if (!mute) {
@@ -332,25 +337,56 @@ int main (int argc, char *argv[]) {
 			Move picked_move;
 			minimax_searched = 0;
 			quiescence_searched = 0;
-
-			bool move_found = false;
-
 			auto start = std::chrono::high_resolution_clock::now();
-			int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
+			int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE; // Supposed to be assigned later
+			int eval1 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
+			int eval2 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
+			int eval3 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
+			int can_1 = 0, can_2 = 0, can_3 = 0;
 			for (int i = 0; i < moves.size(); i++) {
 				const auto move = moves[i];
 				board.makeMove(move);
 				int move_eval = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
 				board.unmakeMove(move);
 
-				if ((turn == Color::WHITE && move_eval > eval) || (turn == Color::BLACK && move_eval < eval)) {
-					eval = move_eval;
-					picked_move = move;
-					move_found = true;
-				} 
+				if ((turn == Color::WHITE && move_eval > eval1) || (turn == Color::BLACK && move_eval < eval1)) {
+					eval1 = move_eval;
+					can_1 = i;
+				} else if ((turn == Color::WHITE && move_eval > eval2) || (turn == Color::BLACK && move_eval < eval2)) {
+					eval2 = move_eval;
+					can_2 = i;
+				} else if ((turn == Color::WHITE && move_eval > eval3) || (turn == Color::BLACK && move_eval < eval3)) {
+					eval3 = move_eval;
+					can_3 = i;	
+				}
 			}
+			if (abs(eval1 - eval2) > RAND_MOVE_THRE) {
+				picked_move = moves[can_1];
+				eval = eval1;
+			} else if (abs(eval1 - eval3) > RAND_MOVE_THRE) { // 6:4
+				int rand_num = distr(gen);
+				if (rand_num <= 5) {
+					picked_move = moves[can_1];
+					eval = eval1;
+				} else {
+					picked_move = moves[can_2];
+					eval = eval2;	
+				}
+			} else { // 4:4:2
+				int rand_num = distr(gen);
+				if (rand_num <= 3) {
+					picked_move = moves[can_1];
+					eval = eval1;
+				} else if (rand_num <= 7){
+					picked_move = moves[can_2];
+					eval = eval2;	
+				} else {
+					picked_move = moves[can_3];
+					eval = eval3;
+				}
+			}
+
 			auto end = std::chrono::high_resolution_clock::now();
-			if (!move_found) picked_move = moves[0];
 			chrono::duration<double> duration = end - start;
 			if (!mute) {
 				cout << "Execution time: " << duration.count() << " seconds\n";
@@ -379,31 +415,66 @@ int main (int argc, char *argv[]) {
 		Movelist moves;
 		movegen::legalmoves(moves, board);
 		Move picked_move;
-		bool move_found = false;
-
+		minimax_searched = 0;
+		quiescence_searched = 0;
 		auto start = std::chrono::high_resolution_clock::now();
-		int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
+		int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE; // Supposed to be assigned later
+		int eval1 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
+		int eval2 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
+		int eval3 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
+		int can_1 = 0, can_2 = 0, can_3 = 0;
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
 			int move_eval = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
 			board.unmakeMove(move);
 
-			if ((turn == Color::WHITE && move_eval > eval) || (turn == Color::BLACK && move_eval < eval)) {
-				eval = move_eval;
-				picked_move = move;
-				move_found = true;
-			} 
+			if ((turn == Color::WHITE && move_eval > eval1) || (turn == Color::BLACK && move_eval < eval1)) {
+				eval1 = move_eval;
+				can_1 = i;
+			} else if ((turn == Color::WHITE && move_eval > eval2) || (turn == Color::BLACK && move_eval < eval2)) {
+				eval2 = move_eval;
+				can_2 = i;
+			} else if ((turn == Color::WHITE && move_eval > eval3) || (turn == Color::BLACK && move_eval < eval3)) {
+				eval3 = move_eval;
+				can_3 = i;	
+			}
 		}
-		if (!move_found) picked_move = moves[0];
+		if (abs(eval1 - eval2) > RAND_MOVE_THRE) {
+			picked_move = moves[can_1];
+			eval = eval1;
+		} else if (abs(eval1 - eval3) > RAND_MOVE_THRE) { // 6:4
+			int rand_num = distr(gen);
+			if (rand_num <= 5) {
+				picked_move = moves[can_1];
+				eval = eval1;
+			} else {
+				picked_move = moves[can_2];
+				eval = eval2;	
+			}
+		} else { // 4:4:2
+			int rand_num = distr(gen);
+			if (rand_num <= 3) {
+				picked_move = moves[can_1];
+				eval = eval1;
+			} else if (rand_num <= 7){
+				picked_move = moves[can_2];
+				eval = eval2;	
+			} else {
+				picked_move = moves[can_3];
+				eval = eval3;
+			}
+		}
+
 		auto end = std::chrono::high_resolution_clock::now();
+
 		chrono::duration<double> duration = end - start;
 		if (!mute) {
 			cout << "Execution time: " << duration.count() << " seconds\n";
 			printf("minimax nodes: %ld\n", minimax_searched);
 			printf("quiescence nodes: %ld\n", quiescence_searched);
 			printf("eval: %d\n", eval);
-			cout << "Engine mm_depth: " << mm_depth << endl;
+			cout << "Engine mm_depth: " << mm_depth  << ", q_depth: " << quiescence_depth << endl;
 		}
 		string move_s = uci::moveToSan(board, picked_move);
 		// board.makeMove(picked_move);

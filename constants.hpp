@@ -14,6 +14,7 @@ const int DEFAULT_DEPTH_MM = 4;
 const int DEFAULT_DEPTH_Q = 3;
 
 const int PIECE_VAL[6] = {1, 3, 3, 5, 9, 0};
+const int RAND_MOVE_THRE = 10;
 
 const int PST[6][BOARD_SIZE] = {{// PAWN
     0,  0,  0,  0,  0,  0,  0,  0,
