@@ -276,6 +276,7 @@ int minimax (int mm_depth, int alpha, int beta, Color color) {
 		return min_eval;
 	}
 }
+int move_overhead = 0; // Default value
 
 void send_uci_info() {
     cout << "id name silkrow" << endl;
@@ -289,6 +290,17 @@ void send_ready_ok() {
 
 void send_best_move(const Move& best_move) {
     cout << "bestmove " << uci::moveToUci(best_move) << endl;
+}
+
+// Function to handle UCI options like "Move Overhead"
+void set_option(const std::string& name, const std::string& value) {
+    if (name == "Move Overhead") {
+        move_overhead = stoi(value);  // Convert value to integer and set move_overhead
+        cout << "info string Set Move Overhead to " << move_overhead << " ms" << endl;
+    } else {
+        // For unsupported options, ignore or log a message
+        cout << "info string Unsupported option: " << name << endl;
+    }
 }
 
 void handle_uci_command() {
@@ -341,6 +353,15 @@ void handle_uci_command() {
             // Stop the search and return the best move found so far
         } else if (command == "quit") {
             break;
+        } else if (command.rfind("setoption", 0) == 0) {
+            // Handle "setoption" command for setting engine options
+            size_t name_start = command.find("name");
+            size_t value_start = command.find("value");
+            if (name_start != string::npos && value_start != string::npos) {
+                string option_name = command.substr(name_start + 5, value_start - name_start - 6);
+                string option_value = command.substr(value_start + 6);
+                set_option(option_name, option_value);
+            }
         }
     }
 }
