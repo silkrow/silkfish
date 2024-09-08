@@ -15,10 +15,13 @@ class Player:
     player, including settings for an engine, the color it is using, etc.
     """
 
-    def __init__ (self, type):
+    def __init__ (self, type, mm_depth, q_depth, time_limit):
         self.type = type
         self.color = None
         self.nodes_searched = 0
+        self.mm_depth = mm_depth
+        self.q_depth = q_depth
+        self.time_limit = time_limit
     
     def assign_color(self, color):
         """
@@ -60,8 +63,7 @@ class Player:
                     print("Illegal move. Please try again.")
 
         elif self.type == PlayerType.ENGINE:
-            depth = 6
-            command = ['./silkfish', str(depth), board.fen()]
+            command = ['./silkfish', '-md', str(self.mm_depth), '-qd', str(self.q_depth), '-t', str(self.time_limit), '-fen', board.fen()]
 
             global task_done, output
             task_done = False
@@ -82,7 +84,7 @@ class Player:
 
             best_move = output.strip().split('\n')[-1]
 
-            print(f"silkfish with depth {depth} makes move: {best_move}")
+            print(f"silkfish with minimax depth {self.mm_depth} q depth {self.q_depth} time limit {self.time_limit}s makes move: {best_move}")
             move = board.parse_san(best_move)
             return move
 

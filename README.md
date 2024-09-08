@@ -7,7 +7,7 @@
 
 - [ ] Implement the engine to support UCI.
 - [ ] Deploy the engine on lichess-bot, following [https://github.com/lichess-bot-devs/lichess-bot](https://github.com/lichess-bot-devs/lichess-bot).
-- [ ] Rewrite the input parsing system of ```silkfish```, support flags for minimax depth, quiescence search depth, time limitation, output mute, and mode selection.
+- [x] Rewrite the input parsing system of ```silkfish```, support flags for minimax depth, quiescence search depth, time limitation, output mute, and mode selection.
 
 ## 1. Compile the Engine
 ***silkfish*** engine is written in c++, so you do need a ```g++``` compiler to compile it. 
@@ -34,26 +34,32 @@ This is how the command line GUI looks like:
 <img src="images/gui.png" alt="GUI" style="width: 300px;"/>
 
 ## 3. Use the Engine
-**After compilation**, you can use the engine without a GUI, there're two possible ways.
+**After compilation**, you can use the engine without a GUI, you should execute the engine in the following format.
 
-The first way to use the engine is to enjoy seeing a game played by itself,
+    ./silkfish <flag1> <option1> <flag2> <option2> ... <-fen> {fen_string}
 
-    ./silkfish <-flag> demo <depth>
+There're two main ways of using the engine. 
 
-    e.g.
-    ./silkfish demo 6
+1. You pass in a ```-demo``` flag to make the engine play a full game with itself.
+2. You don't pass the ```-demo``` flag, so the engine will expect you to pass a ```-fen``` flag followed by a ```fen_string``` **at the very end of your command**, and the engine will output the evaluation for this FEN position, as well as the best move.
 
-The second way to use the engine is to give it a position in the format of FEN, and receive an output from it.
+Following are some examples of using the engine, with explanations,
 
-    ./silkfish <-flag> <depth> {fen_string} 
+    ./silkfish -demo                                                # This will start a full game played by engine with itself, using all default parameters.
 
-    e.g.
-    ./silkfish -m 7 4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1
+    ./silkfish -md 5 -demo -t 43 -m                                 # This will start a full game played by engine with itself, using ```minimax_depth=5```, ```time_limit=43s```, with output muted for each move.
+
+    ./silkfish -qd 3 -md 5 -fen 4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1     # This will make the engine evaluate the position, output a evaluation and a best move.
 
 ### 3.1 Flags
-No matter how many flags you pass, pass it with a single ```-```, for example, to use flag ```a``` and ```m```, you can either do ```-am``` or ```-ma```.
+Flags are passed with options following them (if there should be an option). The order of the flags doesn't matter, expect that ```-fen``` flag and the ```fen_string``` needs to be put **at the very end of the command**.
 
-1. ```m```: Mute the output of engine (expect the final results).
+1. ```-m```: mute the output of engine (expect the final results).
+2. ```-t```: followed by an int ```time```, being the time limitation for each move.
+3. ```-md```: followed by an int ```depth```, being the depth of the minimax search.
+4. ```-qd```: followed by an int ```depth```, being the depth of the quiescence search.
+5. ```-demo```: demo mode, the engine will play a full game with itself.
+6. ```-fen```: followed by a string of FEN, **it should by placed at the very end!** used when ```-demo``` flag is NOT set. 
 
 ## 4. Testing
 

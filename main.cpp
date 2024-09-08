@@ -10,10 +10,38 @@ using namespace std;
 long minimax_searched = 0;
 long quiescence_searched = 0;
 int quiescence_depth = DEFAULT_DEPTH_Q;
+int mm_depth = DEFAULT_DEPTH_MM;
 float time_limit = 15.0;
 auto start = std::chrono::high_resolution_clock::now();
 
+
 Board board;
+
+// InputParser source: https://stackoverflow.com/questions/865668/parsing-command-line-arguments-in-c
+class InputParser{
+    public:
+        InputParser (int &argc, char **argv){
+            for (int i=1; i < argc; ++i)
+                this->tokens.push_back(std::string(argv[i]));
+        }
+        // @author iain
+        const std::string& getCmdOption(const std::string &option) const{
+            std::vector<std::string>::const_iterator itr;
+            itr =  std::find(this->tokens.begin(), this->tokens.end(), option);
+            if (itr != this->tokens.end() && ++itr != this->tokens.end()){
+                return *itr;
+            }
+            static const std::string empty_string("");
+            return empty_string;
+        }
+        // @author iain
+        bool cmdOptionExists(const std::string &option) const{
+            return std::find(this->tokens.begin(), this->tokens.end(), option)
+                   != this->tokens.end();
+        }
+    private:
+        std::vector <std::string> tokens;
+};
 
 int evaluation(Board& board) {
 	int evaluation = 0;
@@ -251,7 +279,7 @@ int minimax (int mm_depth, int alpha, int beta, Color color) {
 }
 
 void usage_error() {
-	cout << "Usage: ./silkrow <-m> <mm_depth> \"{fen_string}\" or ./silkrow <-m> demo <mm_depth>" << endl;
+	cout << "Usage: ./silkrow <-flag1> <option1> <-flag2> <option2> ... <-fen> {fen_string}" << endl;
 	return;
 }
 
@@ -270,64 +298,82 @@ Color fen_player_color(string& fen) {
 }
 
 int main (int argc, char *argv[]) {
-	int mm_depth = DEFAULT_DEPTH_MM;
 	string fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
 	// fen_string = "4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1"; // for testing purpose
 	bool demo_mode = false;
 	bool mute = false;
 
-	if (argc == 1){
-		usage_error();
-		return 1;
-	}
+	InputParser input(argc, argv);
 
-    int arg_start = 1;
-    if (string(argv[1]) == "-m") {
-        mute = true;
-        arg_start = 2;
-    }
+	if (input.cmdOptionExists("-m")) {
+		mute = true;
+	} 
 
-	if (arg_start > argc - 1) {
-		usage_error();
-		return 1;
-	}
-
-	string second_arg = argv[arg_start];
-	if (second_arg == "demo") { // demo mode
+	if (input.cmdOptionExists("-demo")) {
 		demo_mode = true;
-		if (argc - 1 == arg_start + 1) {
-			string third_arg = argv[arg_start + 1];
-			try {
-				size_t pos;
-				mm_depth = stoi(third_arg, &pos);
-				if (pos != third_arg.length()) {
-					usage_error();
-					return 1;
-				}
-			} catch (const std::invalid_argument&) {
-				usage_error();
-				return 1;
-    		} catch (const std::out_of_range&) {
-        		usage_error();
-				return 1;
-			}
-		}
-	} else { // customized fen 
+	} 
+
+	const string &mm_depth_s = input.getCmdOption("-md");
+	if (!mm_depth_s.empty()) {
 		try {
 			size_t pos;
-			mm_depth = stoi(second_arg, &pos);
-			if (pos == second_arg.length()) {
-				arg_start++;
-			} else {
-				mm_depth = DEFAULT_DEPTH_MM;
+			mm_depth = stoi(mm_depth_s, &pos);
+			if (pos != mm_depth_s.length()) {
+				usage_error();
+				return 1;
 			}
 		} catch (const std::invalid_argument&) {
-		} catch (const std::out_of_range&) {
-		}
-
-		if (arg_start > argc - 1) { // check if there is fen string input
 			usage_error();
 			return 1;
+    	} catch (const std::out_of_range&) {
+        	usage_error();
+			return 1;
+		}
+	}
+
+	const string &q_depth_s = input.getCmdOption("-qd");
+	if (!q_depth_s.empty()) {
+		try {
+			size_t pos;
+			quiescence_depth = stoi(q_depth_s, &pos);
+			if (pos != q_depth_s.length()) {
+				usage_error();
+				return 1;
+			}
+		} catch (const std::invalid_argument&) {
+			usage_error();
+			return 1;
+    	} catch (const std::out_of_range&) {
+        	usage_error();
+			return 1;
+		}
+	}
+
+	const string &time_limit_s = input.getCmdOption("-t");
+	if (!time_limit_s.empty()) {
+		try {
+			size_t pos;
+			time_limit = (double) stoi(time_limit_s, &pos);
+			if (pos != time_limit_s.length()) {
+				usage_error();
+				return 1;
+			}
+		} catch (const std::invalid_argument&) {
+			usage_error();
+			return 1;
+    	} catch (const std::out_of_range&) {
+        	usage_error();
+			return 1;
+		}
+	}
+
+	if (!demo_mode) {
+		int arg_start = 0;
+		for (int i = 0; i < argc - 1; i++) {
+			if (string(argv[i]) == "-fen") {
+				arg_start = i + 1;
+				break;
+			}
 		}
 
 		fen_string = "";
@@ -346,7 +392,7 @@ int main (int argc, char *argv[]) {
 	// Main logic
 	if (demo_mode) {
         if (!mute) {
-            cout << "Running in demo mode with mm_depth " << mm_depth << ", q_depth " << quiescence_depth << ", engine vs engine." << endl;
+            cout << "Running in demo mode with mm_depth " << mm_depth << ", q_depth " << quiescence_depth << ", time_limit " << time_limit << ", engine vs engine." << endl;
         }
 		board = Board(fen_string);
 		Movelist moves;
@@ -496,7 +542,7 @@ int main (int argc, char *argv[]) {
 			printf("minimax nodes: %ld\n", minimax_searched);
 			printf("quiescence nodes: %ld\n", quiescence_searched);
 			printf("eval: %d\n", eval);
-			cout << "Engine mm_depth: " << mm_depth  << ", q_depth: " << quiescence_depth << endl;
+			cout << "Engine mm_depth: " << mm_depth  << ", q_depth: " << quiescence_depth << ", time_limit: " << time_limit << "s" << endl;
 		}
 		string move_s = uci::moveToSan(board, picked_move);
 		// board.makeMove(picked_move);

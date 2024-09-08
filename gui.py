@@ -6,6 +6,10 @@ import display_unicode
 
 class Game:
 
+    mm_depth = 7
+    q_depth = 3
+    time_limit = 15
+
     def __init__(self):
         self.ply1 = None
         self.ply2 = None
@@ -21,10 +25,10 @@ class Game:
             bool: Whether the players is successfully added.
         """
         if self.ply1 == None:
-            self.ply1 = Player(player_type)
+            self.ply1 = Player(player_type, Game.mm_depth, Game.q_depth, Game.time_limit)
             return True
         elif self.ply2 == None:
-            self.ply2 = Player(player_type)
+            self.ply2 = Player(player_type, Game.mm_depth, Game.q_depth, Game.time_limit)
             return True
         else:
             return False
@@ -126,6 +130,22 @@ if __name__ == "__main__":
     print("D. Engine vs Engine")
 
     choice = input("Enter your choice (A/B/C/D): ").strip().upper()
+
+    if choice in ("A", "B", "D"):
+        print("Configure the engine.")
+        try:
+            Game.mm_depth = int(input(f"Input the minimax depth (default is {Game.mm_depth}): ").strip())
+        except ValueError:
+            print("That's not a valid number!")
+        try:
+            Game.q_depth = int(input(f"Input the quiescence depth (default is {Game.q_depth}): ").strip())
+        except ValueError:
+            print("That's not a valid number!")
+        try:
+            Game.time_limit = int(input(f"Input the time limit (default is {Game.time_limit} seconds): ").strip())
+        except ValueError:
+            print("That's not a valid number!")
+
 
     game = Game()
 
