@@ -5,3 +5,5 @@ __pycache__/
 silkfish
 
 silkfish_uci
+
+.vscode/
