@@ -76,3 +76,8 @@ Below is a result table of ```silkfish``` on the ERET test.
 |------------|------------|------------|------------|
 | 93f488c | 13 (without time limit)| 11.71% | 2024.9.6 |
 | aa7f91f | 11 | 9.91% | 2024.9.7 |
+
+## 5. UCI
+The engine can be compiled to support UCI. The source code for that is in file ```uci.cpp```, use the following command to compile,
+
+    g++ -std=c++17 -O3 -march=native -o silkfish_uci uci.cpp
