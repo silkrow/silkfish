@@ -47,7 +47,7 @@ Following are some examples of using the engine, with explanations,
 
     ./silkfish -demo                                                # This will start a full game played by engine with itself, using all default parameters.
 
-    ./silkfish -md 5 -demo -t 43 -m                                 # This will start a full game played by engine with itself, using ```minimax_depth=5```, ```time_limit=43s```, with output muted for each move.
+    ./silkfish -md 5 -demo -t 43 -m                                 # This will start a full game played by engine with itself, using minimax_depth=5, time_limit=43s, with output muted for each move.
 
     ./silkfish -qd 3 -md 5 -fen 4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1     # This will make the engine evaluate the position, output a evaluation and a best move.
 
