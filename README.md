@@ -51,11 +51,13 @@ Following are some examples of using the engine, with explanations,
 
     ./silkfish -qd 3 -md 5 -fen 4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1     # This will make the engine evaluate the position, output a evaluation and a best move.
 
+    ./silkfish -md 5 -t 0 -qd 3 -fen 4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1     # This will make the engine evaluate the position without time limitation, output a evaluation and a best move.
+
 ### 3.1 Flags
 Flags are passed with options following them (if there should be an option). The order of the flags doesn't matter, expect that ```-fen``` flag and the ```fen_string``` needs to be put **at the very end of the command**.
 
 1. ```-m```: mute the output of engine (expect the final results).
-2. ```-t```: followed by an int ```time```, being the time limitation for each move.
+2. ```-t```: followed by an int ```time```, being the time limitation for each move. ```-t 0``` means **no time limitation**.
 3. ```-md```: followed by an int ```depth```, being the depth of the minimax search.
 4. ```-qd```: followed by an int ```depth```, being the depth of the quiescence search.
 5. ```-demo```: demo mode, the engine will play a full game with itself.
