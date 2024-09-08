@@ -84,7 +84,7 @@ class Player:
 
             best_move = output.strip().split('\n')[-1]
 
-            print(f"silkfish with minimax depth {self.mm_depth} q depth {self.q_depth} time limit {self.time_limit}s makes move: {best_move}")
+            print(f"silkfish with minimax depth {self.mm_depth} Q depth {self.q_depth} time limit {self.time_limit}s makes move: {best_move}")
             move = board.parse_san(best_move)
             return move
 

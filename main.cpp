@@ -123,7 +123,7 @@ int quiescence_search (int q_depth, int alpha, int beta, Color color) {
 		auto end = std::chrono::high_resolution_clock::now();
 		chrono::duration<double> duration = end - start;
 		if (duration.count() > time_limit) {
-			return evaluation(board);
+			return color == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
 		}
 	}
 
@@ -185,7 +185,7 @@ int minimax (int mm_depth, int alpha, int beta, Color color) {
 		auto end = std::chrono::high_resolution_clock::now();
 		chrono::duration<double> duration = end - start;
 		if (duration.count() > time_limit) {
-			return evaluation(board);
+			return color == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
 		}
 	}
 
