@@ -3,10 +3,12 @@
   <img src="images/logo64.gif" alt="Silkfish Logo" style="vertical-align: middle;"/>
 </h1>
 
+**2024.9.7:** silkfish is now a Lichess Bot on lichess.org! View it's [profile](https://lichess.org/@/silkfish) &#129302;.
+
 **TODO**
 
 - [ ] Implement the engine to support UCI.
-- [ ] Deploy the engine on lichess-bot, following [https://github.com/lichess-bot-devs/lichess-bot](https://github.com/lichess-bot-devs/lichess-bot).
+- [x] Deploy the engine on lichess-bot, following [https://github.com/lichess-bot-devs/lichess-bot](https://github.com/lichess-bot-devs/lichess-bot).
 - [x] Rewrite the input parsing system of ```silkfish```, support flags for minimax depth, quiescence search depth, time limitation, output mute, and mode selection.
 
 ## 1. Compile the Engine
