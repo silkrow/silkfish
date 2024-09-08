@@ -297,7 +297,106 @@ Color fen_player_color(string& fen) {
     throw std::invalid_argument("Invalid FEN string format");
 }
 
+///////////////// UCI implementation //////////////////
+
+int move_overhead = 0; // Default value
+
+void send_uci_info() {
+    cout << "id name silkrow" << endl;
+    cout << "id author Erkai Yu" << endl;
+    cout << "uciok" << endl;
+}
+
+void send_ready_ok() {
+    cout << "readyok" << endl;
+}
+
+void send_best_move(const Move& best_move) {
+    cout << "bestmove " << uci::moveToUci(best_move) << endl;
+}
+
+// Function to handle UCI options like "Move Overhead"
+void set_option(const std::string& name, const std::string& value) {
+    if (name == "Move Overhead") {
+        move_overhead = stoi(value);  // Convert value to integer and set move_overhead
+        cout << "info string Set Move Overhead to " << move_overhead << " ms" << endl;
+    } else {
+        // For unsupported options, ignore or log a message
+        cout << "info string Unsupported option: " << name << endl;
+    }
+}
+
+void handle_uci_command() {
+    string command;
+    while (getline(cin, command)) {
+        if (command == "uci") {
+            send_uci_info();
+        } else if (command == "isready") {
+            send_ready_ok();
+        } else if (command.rfind("position", 0) == 0) {
+            // Extract FEN and moves from "position" command
+            size_t fen_start = command.find("fen");
+            if (fen_start != string::npos) {
+                string fen_string = command.substr(fen_start + 4);
+                board = Board(fen_string);
+            }
+
+            size_t moves_start = command.find("moves");
+            if (moves_start != string::npos) {
+                string moves_string = command.substr(moves_start + 6);
+                istringstream move_stream(moves_string);
+                string move_str;
+                while (move_stream >> move_str) {
+                    Move move = uci::uciToMove(board, move_str);
+                    board.makeMove(move);
+                }
+            }
+        } else if (command.rfind("go", 0) == 0) {
+            // Run search algorithm
+            Movelist moves;
+            movegen::legalmoves(moves, board);
+
+            Move best_move;
+            int best_eval = -MAX_SCORE;
+
+            for (int i = 0; i < moves.size(); i++) {
+                const auto move = moves[i];
+                board.makeMove(move);
+                int eval = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, board.sideToMove());
+                board.unmakeMove(move);
+
+                if (eval > best_eval) {
+                    best_eval = eval;
+                    best_move = move;
+                }
+            }
+
+            send_best_move(best_move);
+        } else if (command == "stop") {
+            // Stop the search and return the best move found so far
+        } else if (command == "quit") {
+            break;
+        } else if (command.rfind("setoption", 0) == 0) {
+            // Handle "setoption" command for setting engine options
+            size_t name_start = command.find("name");
+            size_t value_start = command.find("value");
+            if (name_start != string::npos && value_start != string::npos) {
+                string option_name = command.substr(name_start + 5, value_start - name_start - 6);
+                string option_value = command.substr(value_start + 6);
+                set_option(option_name, option_value);
+            }
+        }
+    }
+}
+
+////////////// End of UCI imlementation /////////////
+
 int main (int argc, char *argv[]) {
+	if (argc == 1) {      // UCI mode if no argument passed in.
+		handle_uci_command();
+		return 0;
+	}
+
 	string fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
 	// fen_string = "4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1"; // for testing purpose
 	bool demo_mode = false;

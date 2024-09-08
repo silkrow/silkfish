@@ -40,10 +40,11 @@ This is how the command line GUI looks like:
 
     ./silkfish <flag1> <option1> <flag2> <option2> ... <-fen> {fen_string}
 
-There're two main ways of using the engine. 
+There're three main ways of using the engine. 
 
 1. You pass in a ```-demo``` flag to make the engine play a full game with itself.
 2. You don't pass the ```-demo``` flag, so the engine will expect you to pass a ```-fen``` flag followed by a ```fen_string``` **at the very end of your command**, and the engine will output the evaluation for this FEN position, as well as the best move.
+3. You pass **No argument at all**, this will give you an UCI engine!
 
 Following are some examples of using the engine, with explanations,
 
@@ -54,6 +55,8 @@ Following are some examples of using the engine, with explanations,
     ./silkfish -qd 3 -md 5 -fen 4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1     # This will make the engine evaluate the position, output a evaluation and a best move.
 
     ./silkfish -md 5 -t 0 -qd 3 -fen 4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1     # This will make the engine evaluate the position without time limitation, output a evaluation and a best move.
+
+    ./silkfish                                                      # This will run the engine in UCI mode
 
 ### 3.1 Flags
 Flags are passed with options following them (if there should be an option). The order of the flags doesn't matter, expect that ```-fen``` flag and the ```fen_string``` needs to be put **at the very end of the command**.
@@ -78,8 +81,3 @@ Below is a result table of ```silkfish``` on the ERET test.
 |------------|------------|------------|------------|
 | 93f488c | 13 (without time limit)| 11.71% | 2024.9.6 |
 | aa7f91f | 11 | 9.91% | 2024.9.7 |
-
-## 5. UCI
-The engine can be compiled to support UCI. The source code for that is in file ```uci.cpp```, use the following command to compile,
-
-    g++ -std=c++17 -O3 -march=native -o silkfish_uci uci.cpp
