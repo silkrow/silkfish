@@ -10,8 +10,6 @@
 using namespace chess;
 using namespace std;
 
-long minimax_searched = 0;
-long quiescence_searched = 0;
 int quiescence_depth = DEFAULT_DEPTH_Q;
 int mm_depth = DEFAULT_DEPTH_MM;
 float time_limit = 15.0;
@@ -94,8 +92,6 @@ bool appear_quiet(Board board) {
 }
 
 int quiescence_search (int q_depth, int alpha, int beta, Color color, Board board) {
-	quiescence_searched++;
-	
 	// Force quit if time is up
 	if (time_limit > 0) {
 		auto end = std::chrono::high_resolution_clock::now();
@@ -156,8 +152,6 @@ int quiescence_search (int q_depth, int alpha, int beta, Color color, Board boar
 }
 
 int minimax (int mm_depth, int alpha, int beta, Color color, Board board) {
-	minimax_searched++;
-
 	// Force quit if time is up
 	if (time_limit > 0) {
 		auto end = std::chrono::high_resolution_clock::now();
@@ -279,7 +273,7 @@ int minimax (int mm_depth, int alpha, int beta, Color color, Board board) {
 }
 
 void usage_error() {
-	cout << "Usage: ./silkrow <-flag1> <option1> <-flag2> <option2> ... <-fen> {fen_string}" << endl;
+	std::cout << "Usage: ./silkrow <-flag1> <option1> <-flag2> <option2> ... <-fen> {fen_string}" << endl;
 	return;
 }
 
@@ -409,8 +403,6 @@ int main (int argc, char *argv[]) {
 		while (board.isGameOver().first == GameResultReason::NONE) {
 			movegen::legalmoves(moves, board);
 			Move picked_move;
-			minimax_searched = 0;
-			quiescence_searched = 0;
 			start = std::chrono::high_resolution_clock::now();
 
 			if (turn == Color::WHITE) fill(evals, evals + moves.size(), -MAX_SCORE);
@@ -461,9 +453,7 @@ int main (int argc, char *argv[]) {
 			chrono::duration<double> duration = end - start;
 
 			if (!mute) {
-				cout << "Execution time: " << duration.count() << " seconds\n";
-				printf("minimax nodes: %ld\n", minimax_searched);
-				printf("quiescence nodes: %ld\n", quiescence_searched);
+				std::cout << "Execution time: " << duration.count() << " seconds\n";
 				printf("eval: %d\n", eval);
 			}
 			string move_s = uci::moveToSan(board, picked_move);
@@ -475,20 +465,18 @@ int main (int argc, char *argv[]) {
 			}
 			board.makeMove(picked_move);
 			if (!mute) {
-				cout << move_s << endl << endl;
+				std::cout << move_s << endl << endl;
 			}
 			turn = 1 - turn;
 		} 
 
-		cout << game_pgn << endl;
+		std::cout << game_pgn << endl;
 	} else { // engine mode
 		Color turn = fen_player_color(fen_string);
 		Board board = Board(fen_string);
 		Movelist moves;
 		movegen::legalmoves(moves, board);
 		Move picked_move;
-		minimax_searched = 0;
-		quiescence_searched = 0;
 		start = std::chrono::high_resolution_clock::now();
 		int evals[moves.size()];
 
@@ -515,15 +503,13 @@ int main (int argc, char *argv[]) {
 
 		chrono::duration<double> duration = end - start;
 		if (!mute) {
-			cout << "Execution time: " << duration.count() << " seconds\n";
-			printf("minimax nodes: %ld\n", minimax_searched);
-			printf("quiescence nodes: %ld\n", quiescence_searched);
+			std::cout << "Execution time: " << duration.count() << " seconds\n";
 			printf("eval: %d\n", eval);
-			cout << "Engine mm_depth: " << mm_depth  << ", q_depth: " << quiescence_depth << ", time_limit: " << time_limit << "s" << endl;
+			std::cout << "Engine mm_depth: " << mm_depth  << ", q_depth: " << quiescence_depth << ", time_limit: " << time_limit << "s" << endl;
 		}
 		string move_s = uci::moveToSan(board, picked_move);
 		// board.makeMove(picked_move);
-		cout << move_s << endl;
+		std::cout << move_s << endl;
 	}
     return 0;
 }
@@ -533,27 +519,27 @@ int main (int argc, char *argv[]) {
 int move_overhead = 0; // Default value
 
 void send_uci_info() {
-    cout << "id name silkrow" << endl;
-    cout << "id author Erkai Yu" << endl;
-    cout << "uciok" << endl;
+    std::cout << "id name silkrow" << endl;
+    std::cout << "id author Erkai Yu" << endl;
+    std::cout << "uciok" << endl;
 }
 
 void send_ready_ok() {
-    cout << "readyok" << endl;
+    std::cout << "readyok" << endl;
 }
 
 void send_best_move(const Move& best_move) {
-    cout << "bestmove " << uci::moveToUci(best_move) << endl;
+    std::cout << "bestmove " << uci::moveToUci(best_move) << endl;
 }
 
 // Function to handle UCI options like "Move Overhead"
 void set_option(const std::string& name, const std::string& value) {
     if (name == "Move Overhead") {
         move_overhead = stoi(value);  // Convert value to integer and set move_overhead
-        cout << "info string Set Move Overhead to " << move_overhead << " ms" << endl;
+        std::cout << "info string Set Move Overhead to " << move_overhead << " ms" << endl;
     } else {
         // For unsupported options, ignore or log a message
-        cout << "info string Unsupported option: " << name << endl;
+        std::cout << "info string Unsupported option: " << name << endl;
     }
 }
 
