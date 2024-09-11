@@ -15,8 +15,6 @@ float time_limit = 15.0;
 auto start = std::chrono::high_resolution_clock::now();
 bool debug_mode = false; // Not being used.
 
-Board board;
-
 // InputParser source: https://stackoverflow.com/questions/865668/parsing-command-line-arguments-in-c
 class InputParser{
     public:
@@ -68,31 +66,7 @@ int evaluation(Board& board) {
 	return evaluation;
 }
 
-bool compare_moves (Move a, Move b) {
-	int a_val = 0, b_val = 0;
-
-	if (a == Move::CASTLING) a_val = CASTLE; // Castle is encoded as king capturing rook in the library!
-	else if (board.isCapture(a)) {
-		int af = (int)((board.at<Piece>(a.from())).type());
-		int at = (int)((board.at<Piece>(a.to())).type());
-		
-		std::pair<int, int> key = std::make_pair(af, at % 6);
-		a_val = capture_score[key];
-	}
-
-	if (b == Move::CASTLING) b_val = CASTLE;
-	else if (board.isCapture(b)) {
-		int bf = (int)((board.at<Piece>(b.from())).type());
-		int bt = (int)((board.at<Piece>(b.to())).type());
-		
-		std::pair<int, int> key = std::make_pair(bf, bt % 6);
-		b_val = capture_score[key];
-	}
-
-    return a_val > b_val;
-}
-
-bool appear_quiet() {
+bool appear_quiet(Board board) {
 	if (board.inCheck())
 		return false;
 
@@ -115,7 +89,7 @@ bool appear_quiet() {
 	return true;
 }
 
-int quiescence_search (int q_depth, int alpha, int beta, Color color) {
+int quiescence_search (int q_depth, int alpha, int beta, Color color, Board board) {
 	quiescence_searched++;
 	
 	// Force quit if time is up
@@ -127,7 +101,7 @@ int quiescence_search (int q_depth, int alpha, int beta, Color color) {
 		}
 	}
 
-	if (q_depth == 0 || appear_quiet()) return evaluation(board);
+	if (q_depth == 0 || appear_quiet(board)) return evaluation(board);
 
 	Movelist moves;
 	movegen::legalmoves(moves, board);
@@ -145,7 +119,7 @@ int quiescence_search (int q_depth, int alpha, int beta, Color color) {
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int eval = quiescence_search(q_depth, alpha, beta, 1 - color);
+			int eval = quiescence_search(q_depth, alpha, beta, 1 - color, board);
 			board.unmakeMove(move);
 
 			max_eval = eval > max_eval ? eval:max_eval;
@@ -162,7 +136,7 @@ int quiescence_search (int q_depth, int alpha, int beta, Color color) {
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int eval = quiescence_search(q_depth, alpha, beta, 1 - color);
+			int eval = quiescence_search(q_depth, alpha, beta, 1 - color, board);
 			board.unmakeMove(move);
 
 			min_eval = eval < min_eval ? eval:min_eval;
@@ -177,7 +151,7 @@ int quiescence_search (int q_depth, int alpha, int beta, Color color) {
 	}
 }
 
-int minimax (int mm_depth, int alpha, int beta, Color color) {
+int minimax (int mm_depth, int alpha, int beta, Color color, Board board) {
 	minimax_searched++;
 
 	// Force quit if time is up
@@ -191,10 +165,32 @@ int minimax (int mm_depth, int alpha, int beta, Color color) {
 
 	Movelist moves;
 	movegen::legalmoves(moves, board);
-	sort(moves.begin(), moves.end(), compare_moves);
+	sort(moves.begin(), moves.end(), [board] (Move a, Move b) {
+	int a_val = 0, b_val = 0;
+
+	if (a == Move::CASTLING) a_val = CASTLE; // Castle is encoded as king capturing rook in the library!
+	else if (board.isCapture(a)) {
+		int af = (int)((board.at<Piece>(a.from())).type());
+		int at = (int)((board.at<Piece>(a.to())).type());
+		
+		std::pair<int, int> key = std::make_pair(af, at % 6);
+		a_val = capture_score[key];
+	}
+
+	if (b == Move::CASTLING) b_val = CASTLE;
+	else if (board.isCapture(b)) {
+		int bf = (int)((board.at<Piece>(b.from())).type());
+		int bt = (int)((board.at<Piece>(b.to())).type());
+		
+		std::pair<int, int> key = std::make_pair(bf, bt % 6);
+		b_val = capture_score[key];
+	}
+
+    return a_val > b_val;
+	});
 
 	if (mm_depth == 0) {
-		if (appear_quiet()) {
+		if (appear_quiet(board)) {
 			return evaluation(board);
 		} else {
 			if (color == Color::WHITE) {
@@ -202,7 +198,7 @@ int minimax (int mm_depth, int alpha, int beta, Color color) {
 				for (int i = 0; i < moves.size(); i++) {
 					const auto move = moves[i];
 					board.makeMove(move);
-					int eval = quiescence_search(DEFAULT_DEPTH_Q, alpha, beta, 1 - color);
+					int eval = quiescence_search(DEFAULT_DEPTH_Q, alpha, beta, 1 - color, board);
 					board.unmakeMove(move);
 
 					max_eval = eval > max_eval ? eval:max_eval;
@@ -218,7 +214,7 @@ int minimax (int mm_depth, int alpha, int beta, Color color) {
 				for (int i = 0; i < moves.size(); i++) {
 					const auto move = moves[i];
 					board.makeMove(move);
-					int eval = quiescence_search(quiescence_depth, alpha, beta, 1 - color);
+					int eval = quiescence_search(quiescence_depth, alpha, beta, 1 - color, board);
 					board.unmakeMove(move);
 
 					min_eval = eval < min_eval ? eval:min_eval;
@@ -246,7 +242,7 @@ int minimax (int mm_depth, int alpha, int beta, Color color) {
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int eval = minimax(mm_depth - 1, alpha, beta, 1 - color);
+			int eval = minimax(mm_depth - 1, alpha, beta, 1 - color, board);
 			board.unmakeMove(move);
 
 			max_eval = eval > max_eval ? eval:max_eval;
@@ -263,7 +259,7 @@ int minimax (int mm_depth, int alpha, int beta, Color color) {
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int eval = minimax(mm_depth - 1, alpha, beta, 1 - color);
+			int eval = minimax(mm_depth - 1, alpha, beta, 1 - color, board);
 			board.unmakeMove(move);
 
 			min_eval = eval < min_eval ? eval:min_eval;
@@ -401,7 +397,7 @@ int main (int argc, char *argv[]) {
         if (!mute) {
             cout << "Running in demo mode with mm_depth " << mm_depth << ", q_depth " << quiescence_depth << ", time_limit " << time_limit << ", engine vs engine." << endl;
         }
-		board = Board(fen_string);
+		Board board = Board(fen_string);
 		Movelist moves;
 		Color turn = fen_player_color(fen_string);
 
@@ -413,54 +409,27 @@ int main (int argc, char *argv[]) {
 			minimax_searched = 0;
 			quiescence_searched = 0;
 			start = std::chrono::high_resolution_clock::now();
-			int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE; // Supposed to be assigned later
-			int eval1 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
-			int eval2 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
-			int eval3 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
-			int can_1 = 0, can_2 = 0, can_3 = 0;
+			int evals[moves.size()];
+
+			if (turn == Color::WHITE) fill(evals, evals + moves.size(), -MAX_SCORE);
+			else fill(evals, evals + moves.size(), MAX_SCORE);
+
 			for (int i = 0; i < moves.size(); i++) {
 				const auto move = moves[i];
 				board.makeMove(move);
-				int move_eval = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
+				evals[i] = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn, board);	
 				board.unmakeMove(move);
-
-				if ((turn == Color::WHITE && move_eval > eval1) || (turn == Color::BLACK && move_eval < eval1)) {
-					eval1 = move_eval;
-					can_1 = i;
-				} else if ((turn == Color::WHITE && move_eval > eval2) || (turn == Color::BLACK && move_eval < eval2)) {
-					eval2 = move_eval;
-					can_2 = i;
-				} else if ((turn == Color::WHITE && move_eval > eval3) || (turn == Color::BLACK && move_eval < eval3)) {
-					eval3 = move_eval;
-					can_3 = i;	
-				}
-			}
-			if (abs(eval1 - eval2) > RAND_MOVE_THRE) {
-				picked_move = moves[can_1];
-				eval = eval1;
-			} else if (abs(eval1 - eval3) > RAND_MOVE_THRE) { // 6:4
-				int rand_num = distr(gen);
-				if (rand_num <= 5) {
-					picked_move = moves[can_1];
-					eval = eval1;
-				} else {
-					picked_move = moves[can_2];
-					eval = eval2;	
-				}
-			} else { // 4:4:2
-				int rand_num = distr(gen);
-				if (rand_num <= 3) {
-					picked_move = moves[can_1];
-					eval = eval1;
-				} else if (rand_num <= 7){
-					picked_move = moves[can_2];
-					eval = eval2;	
-				} else {
-					picked_move = moves[can_3];
-					eval = eval3;
-				}
 			}
 
+			int eval = evals[0];
+			picked_move = moves[0];
+			for (int i = 0; i < moves.size(); i++) {
+				if ((turn == Color::WHITE && eval < evals[i]) ||
+				(turn == Color::BLACK && eval > evals[i])) {
+					eval = evals[i];
+					picked_move = moves[i];
+				}
+			}
 			auto end = std::chrono::high_resolution_clock::now();
 			chrono::duration<double> duration = end - start;
 			if (!mute) {
@@ -486,61 +455,34 @@ int main (int argc, char *argv[]) {
 		cout << game_pgn << endl;
 	} else { // engine mode
 		Color turn = fen_player_color(fen_string);
-		board = Board(fen_string);
+		Board board = Board(fen_string);
 		Movelist moves;
 		movegen::legalmoves(moves, board);
 		Move picked_move;
 		minimax_searched = 0;
 		quiescence_searched = 0;
 		start = std::chrono::high_resolution_clock::now();
-		int eval = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE; // Supposed to be assigned later
-		int eval1 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
-		int eval2 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
-		int eval3 = turn == Color::WHITE ? -MAX_SCORE:MAX_SCORE;
-		int can_1 = 0, can_2 = 0, can_3 = 0;
+		int evals[moves.size()];
+
+		if (turn == Color::WHITE) fill(evals, evals + moves.size(), -MAX_SCORE);
+		else fill(evals, evals + moves.size(), MAX_SCORE);
+
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int move_eval = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn);	
+			evals[i] = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn, board);	
 			board.unmakeMove(move);
-
-			if ((turn == Color::WHITE && move_eval > eval1) || (turn == Color::BLACK && move_eval < eval1)) {
-				eval1 = move_eval;
-				can_1 = i;
-			} else if ((turn == Color::WHITE && move_eval > eval2) || (turn == Color::BLACK && move_eval < eval2)) {
-				eval2 = move_eval;
-				can_2 = i;
-			} else if ((turn == Color::WHITE && move_eval > eval3) || (turn == Color::BLACK && move_eval < eval3)) {
-				eval3 = move_eval;
-				can_3 = i;	
-			}
-		}
-		if (abs(eval1 - eval2) > RAND_MOVE_THRE) {
-			picked_move = moves[can_1];
-			eval = eval1;
-		} else if (abs(eval1 - eval3) > RAND_MOVE_THRE) { // 6:4
-			int rand_num = distr(gen);
-			if (rand_num <= 5) {
-				picked_move = moves[can_1];
-				eval = eval1;
-			} else {
-				picked_move = moves[can_2];
-				eval = eval2;	
-			}
-		} else { // 4:4:2
-			int rand_num = distr(gen);
-			if (rand_num <= 3) {
-				picked_move = moves[can_1];
-				eval = eval1;
-			} else if (rand_num <= 7){
-				picked_move = moves[can_2];
-				eval = eval2;	
-			} else {
-				picked_move = moves[can_3];
-				eval = eval3;
-			}
 		}
 
+		int eval = evals[0];
+		picked_move = moves[0];
+		for (int i = 0; i < moves.size(); i++) {
+			if ((turn == Color::WHITE && eval < evals[i]) ||
+			(turn == Color::BLACK && eval > evals[i])) {
+				eval = evals[i];
+				picked_move = moves[i];
+			}
+		}
 		auto end = std::chrono::high_resolution_clock::now();
 
 		chrono::duration<double> duration = end - start;
@@ -589,6 +531,7 @@ void set_option(const std::string& name, const std::string& value) {
 
 void handle_uci_command() {
     string command;
+	Board board;
     while (getline(cin, command)) {
         if (command == "uci") {
             send_uci_info();
@@ -625,7 +568,7 @@ void handle_uci_command() {
             for (int i = 0; i < moves.size(); i++) {
                 const auto move = moves[i];
                 board.makeMove(move);
-                int eval = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, board.sideToMove());
+                int eval = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, board.sideToMove(), board);
                 board.unmakeMove(move);
 
                 if (eval > best_eval) {
