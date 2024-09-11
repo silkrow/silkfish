@@ -16,6 +16,7 @@ float time_limit = 15.0;
 auto start = std::chrono::high_resolution_clock::now();
 bool debug_mode = false; // Not being used.
 int evals[1000];
+std::counting_semaphore<MAX_THREAD> thread_limit(MAX_THREAD);
 
 // InputParser source: https://stackoverflow.com/questions/865668/parsing-command-line-arguments-in-c
 class InputParser{
@@ -392,9 +393,9 @@ int main (int argc, char *argv[]) {
             std::cout << "Running in demo mode with mm_depth " << mm_depth << ", q_depth " << quiescence_depth << ", time_limit " << time_limit << ", engine vs engine." << endl;
         }
 
-		std::counting_semaphore<MAX_THREAD> thread_limit(MAX_THREAD);
 		Board board = Board(fen_string);
 		Movelist moves;
+
 		Color turn = fen_player_color(fen_string);
 
 		string game_pgn = "";
@@ -404,6 +405,30 @@ int main (int argc, char *argv[]) {
 			movegen::legalmoves(moves, board);
 			Move picked_move;
 			start = std::chrono::high_resolution_clock::now();
+
+			sort(moves.begin(), moves.end(), [board] (Move a, Move b) {
+				int a_val = 0, b_val = 0;
+
+				if (a == Move::CASTLING) a_val = CASTLE; // Castle is encoded as king capturing rook in the library!
+				else if (board.isCapture(a)) {
+					int af = (int)((board.at<Piece>(a.from())).type());
+					int at = (int)((board.at<Piece>(a.to())).type());
+					
+					std::pair<int, int> key = std::make_pair(af, at % 6);
+					a_val = capture_score[key];
+				}
+
+				if (b == Move::CASTLING) b_val = CASTLE;
+				else if (board.isCapture(b)) {
+					int bf = (int)((board.at<Piece>(b.from())).type());
+					int bt = (int)((board.at<Piece>(b.to())).type());
+					
+					std::pair<int, int> key = std::make_pair(bf, bt % 6);
+					b_val = capture_score[key];
+				}
+
+				return a_val > b_val;
+			});
 
 			if (turn == Color::WHITE) fill(evals, evals + moves.size(), -MAX_SCORE);
 			else fill(evals, evals + moves.size(), MAX_SCORE);
@@ -417,7 +442,7 @@ int main (int argc, char *argv[]) {
 				const auto move = moves[i];
 				Board board_cp = board;
 				thread_limit.acquire(); 
-				children.emplace_back([&thread_limit, board_cp = std::move(board_cp), move = std::move(move), turn, i, &alpha, &beta, &mtx]() mutable {
+				children.emplace_back([board_cp = std::move(board_cp), move = std::move(move), turn, i, &alpha, &beta, &mtx]() mutable {
 					board_cp.makeMove(move);
 					evals[i] = minimax(mm_depth, alpha, beta, 1 - turn, board_cp);
 
@@ -576,22 +601,80 @@ void handle_uci_command() {
             Movelist moves;
             movegen::legalmoves(moves, board);
 
-            Move best_move;
-            int best_eval = -MAX_SCORE;
+			Move picked_move;
 
-            for (int i = 0; i < moves.size(); i++) {
-                const auto move = moves[i];
-                board.makeMove(move);
-                int eval = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, board.sideToMove(), board);
-                board.unmakeMove(move);
+			sort(moves.begin(), moves.end(), [board] (Move a, Move b) {
+				int a_val = 0, b_val = 0;
 
-                if (eval > best_eval) {
-                    best_eval = eval;
-                    best_move = move;
-                }
-            }
+				if (a == Move::CASTLING) a_val = CASTLE; // Castle is encoded as king capturing rook in the library!
+				else if (board.isCapture(a)) {
+					int af = (int)((board.at<Piece>(a.from())).type());
+					int at = (int)((board.at<Piece>(a.to())).type());
+					
+					std::pair<int, int> key = std::make_pair(af, at % 6);
+					a_val = capture_score[key];
+				}
 
-            send_best_move(best_move);
+				if (b == Move::CASTLING) b_val = CASTLE;
+				else if (board.isCapture(b)) {
+					int bf = (int)((board.at<Piece>(b.from())).type());
+					int bt = (int)((board.at<Piece>(b.to())).type());
+					
+					std::pair<int, int> key = std::make_pair(bf, bt % 6);
+					b_val = capture_score[key];
+				}
+
+				return a_val > b_val;
+			});
+
+			if (board.sideToMove() == Color::WHITE) fill(evals, evals + moves.size(), -MAX_SCORE);
+			else fill(evals, evals + moves.size(), MAX_SCORE);
+
+			std::vector<std::thread> children;
+			mutex mtx;
+			int alpha = -MAX_SCORE;
+			int beta = MAX_SCORE;
+
+			for (int i = 0; i < moves.size(); i++) {
+				const auto move = moves[i];
+				Board board_cp = board;
+				thread_limit.acquire(); 
+				children.emplace_back([board_cp = std::move(board_cp), move = std::move(move), i, &alpha, &beta, &mtx]() mutable {
+					board_cp.makeMove(move);
+					evals[i] = minimax(mm_depth, alpha, beta, board_cp.sideToMove(), board_cp);
+
+					if (1 - board_cp.sideToMove() == 0 && evals[i] > alpha) {
+						mtx.lock();
+						alpha = evals[i];
+						mtx.unlock();
+					} else if (1 - board_cp.sideToMove() == 1 && evals[i] < beta){
+						mtx.lock();
+						beta = evals[i];
+						mtx.unlock();
+					}
+					thread_limit.release();
+				});
+			}
+
+			for (auto& child : children) {
+        		if (child.joinable()) {
+            		child.join();
+				}
+    		}
+
+			int eval = evals[0];
+			picked_move = moves[0];
+			for (int i = 0; i < moves.size(); i++) {
+				if ((board.sideToMove() == Color::WHITE && eval < evals[i]) ||
+				(board.sideToMove() == Color::BLACK && eval > evals[i])) {
+					eval = evals[i];
+					picked_move = moves[i];
+				}
+			}
+			auto end = std::chrono::high_resolution_clock::now();
+			chrono::duration<double> duration = end - start;
+
+            send_best_move(picked_move);
         } else if (command == "stop") {
             // Stop the search and return the best move found so far
         } else if (command == "quit") {
