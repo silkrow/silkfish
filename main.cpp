@@ -614,7 +614,7 @@ void handle_uci_command() {
             }
 
 			if (time_left > 10*60*1000) mm_depth = 7;
-			else if (time_left > 6*60*1000) mm_depth = 6;
+			else if (time_left > 3*60*1000) mm_depth = 6;
 			else mm_depth = 5;
 
             // Run search algorithm
