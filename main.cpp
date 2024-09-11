@@ -613,8 +613,8 @@ void handle_uci_command() {
                 time_left = stoi(command.substr(btime_pos + 6));
             }
 
-			if (time_left > 10*1000) mm_depth = 7;
-			else if (time_left > 6*1000) mm_depth = 6;
+			if (time_left > 10*60*1000) mm_depth = 7;
+			else if (time_left > 6*60*1000) mm_depth = 6;
 			else mm_depth = 5;
 
             // Run search algorithm
