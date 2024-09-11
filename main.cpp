@@ -405,6 +405,7 @@ int main (int argc, char *argv[]) {
 
 		string game_pgn = "";
 		int round = 1;
+		mutex mtx;
 		while (board.isGameOver().first == GameResultReason::NONE) {
 			movegen::legalmoves(moves, board);
 			Move picked_move;
@@ -416,17 +417,15 @@ int main (int argc, char *argv[]) {
 			else fill(evals, evals + moves.size(), MAX_SCORE);
 
 			std::vector<std::thread> children;
+
 			for (int i = 0; i < moves.size(); i++) {
 				const auto move = moves[i];
 				Board board_cp = board;
 				thread_limit.acquire(); 
-				int mm_depth_cp = mm_depth;
-				children.emplace_back([&thread_limit, mm_depth_cp, board_cp, move, turn, i](){
-					Board board_capy = board_cp;
-					board_capy.makeMove(move);
-					evals[i] = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn, board_capy);	
+				children.emplace_back([&thread_limit, board_cp = std::move(board_cp), move = std::move(move), turn, i]() mutable {
+					board_cp.makeMove(move);
+					evals[i] = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn, board_cp);
 					thread_limit.release();
-
 				});
 			}
 
@@ -447,6 +446,7 @@ int main (int argc, char *argv[]) {
 			}
 			auto end = std::chrono::high_resolution_clock::now();
 			chrono::duration<double> duration = end - start;
+
 			if (!mute) {
 				cout << "Execution time: " << duration.count() << " seconds\n";
 				printf("minimax nodes: %ld\n", minimax_searched);
