@@ -2,7 +2,10 @@
 #include "constants.hpp"
 
 #include <chrono>
-#include <random>
+
+#include <thread>
+#include <vector>
+#include <semaphore>
 
 using namespace chess;
 using namespace std;
@@ -14,6 +17,7 @@ int mm_depth = DEFAULT_DEPTH_MM;
 float time_limit = 15.0;
 auto start = std::chrono::high_resolution_clock::now();
 bool debug_mode = false; // Not being used.
+int evals[1000];
 
 // InputParser source: https://stackoverflow.com/questions/865668/parsing-command-line-arguments-in-c
 class InputParser{
@@ -388,15 +392,13 @@ int main (int argc, char *argv[]) {
     	}
 	}
 
-	random_device rd;
-	mt19937 gen(rd());
-	uniform_int_distribution<> distr(0, 9);
-
 	// Main logic
 	if (demo_mode) {
         if (!mute) {
             cout << "Running in demo mode with mm_depth " << mm_depth << ", q_depth " << quiescence_depth << ", time_limit " << time_limit << ", engine vs engine." << endl;
         }
+
+		std::counting_semaphore<MAX_THREAD> thread_limit(MAX_THREAD);
 		Board board = Board(fen_string);
 		Movelist moves;
 		Color turn = fen_player_color(fen_string);
@@ -409,17 +411,30 @@ int main (int argc, char *argv[]) {
 			minimax_searched = 0;
 			quiescence_searched = 0;
 			start = std::chrono::high_resolution_clock::now();
-			int evals[moves.size()];
 
 			if (turn == Color::WHITE) fill(evals, evals + moves.size(), -MAX_SCORE);
 			else fill(evals, evals + moves.size(), MAX_SCORE);
 
+			std::vector<std::thread> children;
 			for (int i = 0; i < moves.size(); i++) {
 				const auto move = moves[i];
-				board.makeMove(move);
-				evals[i] = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn, board);	
-				board.unmakeMove(move);
+				Board board_cp = board;
+				thread_limit.acquire(); 
+				int mm_depth_cp = mm_depth;
+				children.emplace_back([&thread_limit, mm_depth_cp, board_cp, move, turn, i](){
+					Board board_capy = board_cp;
+					board_capy.makeMove(move);
+					evals[i] = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn, board_capy);	
+					thread_limit.release();
+
+				});
 			}
+
+			for (auto& child : children) {
+        		if (child.joinable()) {
+            		child.join();
+				}
+    		}
 
 			int eval = evals[0];
 			picked_move = moves[0];
