@@ -569,6 +569,7 @@ void set_option(const std::string& name, const std::string& value) {
 }
 
 void handle_uci_command() {
+	time_limit = 0;
     string command;
 	Board board;
     while (getline(cin, command)) {
