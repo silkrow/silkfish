@@ -395,7 +395,7 @@ int main (int argc, char *argv[]) {
 	// Main logic
 	if (demo_mode) {
         if (!mute) {
-            cout << "Running in demo mode with mm_depth " << mm_depth << ", q_depth " << quiescence_depth << ", time_limit " << time_limit << ", engine vs engine." << endl;
+            std::cout << "Running in demo mode with mm_depth " << mm_depth << ", q_depth " << quiescence_depth << ", time_limit " << time_limit << ", engine vs engine." << endl;
         }
 
 		std::counting_semaphore<MAX_THREAD> thread_limit(MAX_THREAD);
@@ -417,14 +417,27 @@ int main (int argc, char *argv[]) {
 			else fill(evals, evals + moves.size(), MAX_SCORE);
 
 			std::vector<std::thread> children;
+			mutex mtx;
+			int alpha = -MAX_SCORE;
+			int beta = MAX_SCORE;
 
 			for (int i = 0; i < moves.size(); i++) {
 				const auto move = moves[i];
 				Board board_cp = board;
 				thread_limit.acquire(); 
-				children.emplace_back([&thread_limit, board_cp = std::move(board_cp), move = std::move(move), turn, i]() mutable {
+				children.emplace_back([&thread_limit, board_cp = std::move(board_cp), move = std::move(move), turn, i, &alpha, &beta, &mtx]() mutable {
 					board_cp.makeMove(move);
-					evals[i] = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn, board_cp);
+					evals[i] = minimax(mm_depth, alpha, beta, 1 - turn, board_cp);
+
+					if (turn == Color::WHITE && evals[i] > alpha) {
+						mtx.lock();
+						alpha = evals[i];
+						mtx.unlock();
+					} else if (turn == Color::BLACK && evals[i] < beta){
+						mtx.lock();
+						beta = evals[i];
+						mtx.unlock();
+					}
 					thread_limit.release();
 				});
 			}
