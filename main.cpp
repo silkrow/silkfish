@@ -602,6 +602,21 @@ void handle_uci_command() {
                 }
             }
         } else if (command.rfind("go", 0) == 0) {
+			size_t btime_pos = command.find("btime");
+            size_t wtime_pos = command.find("wtime");
+
+			int time_left;
+
+			if (board.sideToMove() == Color::WHITE && wtime_pos != string::npos) {
+                time_left = stoi(command.substr(wtime_pos + 6));
+            } else if (board.sideToMove() == Color::BLACK && btime_pos != string::npos) {
+                time_left = stoi(command.substr(btime_pos + 6));
+            }
+
+			if (time_left > 10*1000) mm_depth = 7;
+			else if (time_left > 6*1000) mm_depth = 6;
+			else mm_depth = 5;
+
             // Run search algorithm
             Movelist moves;
             movegen::legalmoves(moves, board);
