@@ -17,7 +17,7 @@
 
 To compile, run the following command at the current directory,
 
-    g++ -std=c++17 -O3 -march=native -o silkfish main.cpp
+    g++ -std=c++20 -O3 -march=native -o silkfish main.cpp
 
 This should give you an executable ```silkfish``` at the current directory, being the engine itself &#x270C;
 
