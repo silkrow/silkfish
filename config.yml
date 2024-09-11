@@ -111,7 +111,7 @@ engine:                            # Engine settings.
 
   silence_stderr: false            # Some engines (yes you, Leela) are very noisy.
 
-abort_time: 30                     # Time to abort a game in seconds when there is no activity.
+abort_time: 600                     # Time to abort a game in seconds when there is no activity.
 fake_think_time: false             # Artificially slow down the bot to pretend like it's thinking.
 rate_limiting_delay: 0             # Time (in ms) to delay after sending a move to prevent "Too Many Requests" errors.
 move_overhead: 2000                # Increase if your bot flags games too often.
@@ -165,17 +165,17 @@ challenge:                         # Incoming challenges.
 #   - user4
 # recent_bot_challenge_age: 60     # Maximum age of a bot challenge to be considered recent in seconds
 # max_recent_bot_challenges: 2     # Maximum number of recent challenges that can be accepted from the same bot
-  bullet_requires_increment: false # Require that bullet game challenges from bots have a non-zero increment
+  bullet_requires_increment: true # Require that bullet game challenges from bots have a non-zero increment
 
 greeting:
   # Optional substitution keywords (include curly braces):
   #   {opponent} to insert opponent's name
   #   {me} to insert bot's name
   # Any other words in curly braces will be removed.
-  hello: "Hi! I'm {me}. Good luck! Type !help for a list of commands I can respond to." # Message to send to opponent chat at the start of a game
-  goodbye: "Good game!" # Message to send to opponent chat at the end of a game
-  hello_spectators: "Hi! I'm {me}. Type !help for a list of commands I can respond to." # Message to send to spectator chat at the start of a game
-  goodbye_spectators: "Thanks for watching!" # Message to send to spectator chat at the end of a game
+  hello: "Hi! I'm {me}. Good luck!" # Message to send to opponent chat at the start of a game
+  goodbye: "GG why not?" # Message to send to opponent chat at the end of a game
+  hello_spectators: "Hi! I'm {me}." # Message to send to spectator chat at the start of a game
+  goodbye_spectators: "Thanks for watching! Check https://github.com/silkrow/silkfish for more info!" # Message to send to spectator chat at the end of a game
 
 # pgn_directory: "game_records"    # A directory where PGN-format records of the bot's games are kept
 # pgn_file_grouping: "game"        # How to group games into files. Options are "game", "opponent", and "all"
@@ -184,15 +184,15 @@ greeting:
                                    # "all" - every game is written to a single file named "{Bot name} games.pgn"
 
 matchmaking:
-  allow_matchmaking: false         # Set it to 'true' to challenge other bots.
+  allow_matchmaking: true         # Set it to 'true' to challenge other bots.
   allow_during_games: false        # Set it to 'true' to create challenges during long games.
   challenge_variant: "random"      # If set to 'random', the bot will choose one variant from the variants enabled in 'challenge.variants'.
   challenge_timeout: 30            # Create a challenge after being idle for 'challenge_timeout' minutes. The minimum is 1 minute.
   challenge_initial_time:          # Initial time in seconds of the challenge (to be chosen at random).
-    - 60
-    - 180
+    - 600
+    - 1800
   challenge_increment:             # Increment in seconds of the challenge (to be chosen at random).
-    - 1
+    - 5
     - 2
 #  challenge_days:                 # Days for correspondence challenge (to be chosen at random).
 #    - 1

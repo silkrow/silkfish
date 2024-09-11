@@ -577,16 +577,20 @@ void handle_uci_command() {
             send_uci_info();
         } else if (command == "isready") {
             send_ready_ok();
-		} else if (command.rfind("position", 0) == 0) {
-            // Extract FEN and moves from "position" command
+        } else if (command.rfind("position", 0) == 0) {
+            // Handle "position" command
+            size_t startpos_start = command.find("startpos");
             size_t fen_start = command.find("fen");
-            if (fen_start != string::npos) {
+            if (startpos_start != string::npos) {
+                // If "startpos" is given, set up the board with the initial position
+                board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+            } else if (fen_start != string::npos) {
+                // Handle FEN string if present
                 string fen_string = command.substr(fen_start + 4);
-				if (fen_string != "startpos"){
-                	board = Board(fen_string);
-				} else Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+                board = Board(fen_string);
             }
 
+            // Handle moves after "position" command
             size_t moves_start = command.find("moves");
             if (moves_start != string::npos) {
                 string moves_string = command.substr(moves_start + 6);
