@@ -59,7 +59,7 @@ int evaluation(Board& board) {
 		auto piece = board.at(Square((uint8_t)i));
 		if (piece != Piece::NONE) {
 			if (piece.color() == Color::WHITE) {
-				evaluation += PST[piece.type()][BOARD_SIZE - 1 - i];
+				evaluation += PST[piece.type()][BOARD_SIZE - 1 - (8*(i/8) + 7 - i%8)];
 			} else {
 				evaluation -= PST[piece.type()][i];
 			}
