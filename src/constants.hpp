@@ -1,6 +1,6 @@
-#ifndef CONSTANTS_HPP
-#define CONSTANTS_HPP
+#pragma once
 #include <map>
+#include <semaphore>
 
 const int MAX_SCORE = 100000;
 const int W_WIN_THRE = MAX_SCORE - 50;
@@ -16,6 +16,14 @@ const int DEFAULT_DEPTH_Q = 3;
 const int PIECE_VAL[6] = {1, 3, 3, 5, 9, 0};
 const int RAND_MOVE_THRE = 10;
 const int MAX_THREAD = 7;
+
+extern int quiescence_depth;
+extern int mm_depth;
+extern float time_limit;
+extern bool debug_mode; // Not being used.
+extern int evals[1000];
+extern std::counting_semaphore<MAX_THREAD> thread_limit;
+
 
 const int PST[6][BOARD_SIZE] = {{// PAWN
     0,  0,  0,  0,  0,  0,  0,  0,
@@ -73,41 +81,4 @@ const int PST[6][BOARD_SIZE] = {{// PAWN
     10, 10, 0, -10, 0, -10, 10, 10,
 }};
 
-std::map<std::pair<int, int>, int> capture_score = {
-    {{5, 4}, 50},
-    {{4, 4}, 51},
-    {{3, 4}, 52},
-    {{2, 4}, 53},
-    {{1, 4}, 54},
-    {{0, 4}, 55},
-
-    {{5, 3}, 40},
-    {{4, 3}, 41},
-    {{3, 3}, 42},
-    {{2, 3}, 43},
-    {{1, 3}, 44},
-    {{0, 3}, 45},
-
-    {{5, 2}, 30},
-    {{4, 2}, 31},
-    {{3, 2}, 32},
-    {{2, 2}, 33},
-    {{1, 2}, 34},
-    {{0, 2}, 35},
-
-    {{5, 1}, 20},
-    {{4, 1}, 21},
-    {{3, 1}, 22},
-    {{2, 1}, 23},
-    {{1, 1}, 24},
-    {{0, 1}, 25},
-
-    {{5, 0}, 10},
-    {{4, 0}, 11},
-    {{3, 0}, 12},
-    {{2, 0}, 13},
-    {{1, 0}, 14},
-    {{0, 0}, 15}
-};
-
-#endif // CONSTANTS_HPP
+extern std::map<std::pair<int, int>, int> capture_score;
