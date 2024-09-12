@@ -4,9 +4,11 @@ SRC_DIR = src
 INCLUDE_DIR = -I $(SRC_DIR)/include -I lib/chess-library/include
 OBJ = main.o evaluation.o search.o input_parser.o uci.o
 
-all: chess-engine
+all: silkfish
+	@echo "Build complete. Cleaning up object files..."
+	$(MAKE) clear
 
-chess-engine: $(OBJ)
+silkfish: $(OBJ)
 	$(CXX) $(CXXFLAGS) -o silkfish $(OBJ)
 
 main.o: $(SRC_DIR)/main.cpp
@@ -24,5 +26,8 @@ input_parser.o: $(SRC_DIR)/input_parser.cpp
 uci.o: $(SRC_DIR)/uci.cpp
 	$(CXX) $(CXXFLAGS) -c $(SRC_DIR)/uci.cpp $(INCLUDE_DIR)
 
+clear:
+	rm -f $(OBJ)
+
 clean:
-	rm -f *.o silkfish
+	rm -f $(OBJ) silkfish
