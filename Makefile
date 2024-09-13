@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -O3 -march=native -pthread
+CXXFLAGS = -std=c++20 -O3 -march=native
 SRC_DIR = src
 INCLUDE_DIR = -I $(SRC_DIR)/include -I lib/chess-library/include
 SRC = $(wildcard $(SRC_DIR)/*.cpp)
