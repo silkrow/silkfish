@@ -89,79 +89,8 @@ void handle_uci_command() {
             // Run search algorithm
             Movelist moves;
             movegen::legalmoves(moves, board);
-
-			Move picked_move;
-
-			sort(moves.begin(), moves.end(), [board] (Move a, Move b) {
-				int a_val = 0, b_val = 0;
-
-				if (a == Move::CASTLING) a_val = CASTLE; // Castle is encoded as king capturing rook in the library!
-				else if (board.isCapture(a)) {
-					int af = (int)((board.at<Piece>(a.from())).type());
-					int at = (int)((board.at<Piece>(a.to())).type());
-					
-					std::pair<int, int> key = std::make_pair(af, at % 6);
-					a_val = capture_score[key];
-				}
-
-				if (b == Move::CASTLING) b_val = CASTLE;
-				else if (board.isCapture(b)) {
-					int bf = (int)((board.at<Piece>(b.from())).type());
-					int bt = (int)((board.at<Piece>(b.to())).type());
-					
-					std::pair<int, int> key = std::make_pair(bf, bt % 6);
-					b_val = capture_score[key];
-				}
-
-				return a_val > b_val;
-			});
-
-			if (board.sideToMove() == Color::WHITE) fill(evals, evals + moves.size(), -MAX_SCORE);
-			else fill(evals, evals + moves.size(), MAX_SCORE);
-
-			std::vector<std::thread> children;
-			mutex mtx;
-			int alpha = -MAX_SCORE;
-			int beta = MAX_SCORE;
-
-			for (int i = 0; i < moves.size(); i++) {
-				const auto move = moves[i];
-				Board board_cp = board;
-				thread_limit.acquire(); 
-				children.emplace_back([board_cp = std::move(board_cp), move = std::move(move), i, &alpha, &beta, &mtx]() mutable {
-					board_cp.makeMove(move);
-					evals[i] = minimax(mm_depth, alpha, beta, board_cp.sideToMove(), board_cp);
-
-					if (1 - board_cp.sideToMove() == 0 && evals[i] > alpha) {
-						mtx.lock();
-						alpha = evals[i];
-						mtx.unlock();
-					} else if (1 - board_cp.sideToMove() == 1 && evals[i] < beta){
-						mtx.lock();
-						beta = evals[i];
-						mtx.unlock();
-					}
-					thread_limit.release();
-				});
-			}
-
-			for (auto& child : children) {
-        		if (child.joinable()) {
-            		child.join();
-				}
-    		}
-
-			int eval = evals[0];
-			picked_move = moves[0];
-			for (int i = 0; i < moves.size(); i++) {
-				if ((board.sideToMove() == Color::WHITE && eval < evals[i]) ||
-				(board.sideToMove() == Color::BLACK && eval > evals[i])) {
-					eval = evals[i];
-					picked_move = moves[i];
-				}
-			}
-			auto end = std::chrono::high_resolution_clock::now();
-
+			LennyPOOL lenny_pool(MAX_THREAD);
+			Move picked_move = findBestMove(board, mm_depth, MAX_THREAD);
             send_best_move(picked_move);
         } else if (command == "stop") {
             // Stop the search and return the best move found so far

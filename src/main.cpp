@@ -17,7 +17,6 @@ using namespace std;
 int quiescence_depth = DEFAULT_DEPTH_Q;
 int mm_depth = DEFAULT_DEPTH_MM;
 float time_limit = 15.0;
-auto start = std::chrono::high_resolution_clock::now();
 bool debug_mode = false; // Not being used.
 int evals[1000];
 std::counting_semaphore<MAX_THREAD> thread_limit(MAX_THREAD);
@@ -25,20 +24,6 @@ std::counting_semaphore<MAX_THREAD> thread_limit(MAX_THREAD);
 void usage_error() {
 	std::cout << "Usage: ./silkrow <-flag1> <option1> <-flag2> <option2> ... <-fen> {fen_string}" << endl;
 	return;
-}
-
-Color fen_player_color(string& fen) {
-	size_t spacePos = fen.find(' ');
-    if (spacePos != string::npos) {
-        char toMove = fen[spacePos + 1];
-        if (toMove == 'w') {
-            return Color::WHITE;
-        } else if (toMove == 'b') {
-            return Color::BLACK;
-        }
-    }
-
-    throw std::invalid_argument("Invalid FEN string format");
 }
 
 int main (int argc, char *argv[]) {
@@ -143,90 +128,22 @@ int main (int argc, char *argv[]) {
 		Board board = Board(fen_string);
 		Movelist moves;
 
-		Color turn = fen_player_color(fen_string);
+		Color turn = board.sideToMove();
 
 		string game_pgn = "";
 		int round = 1;
-		mutex mtx;
+		
+		LennyPOOL lenny_pool(MAX_THREAD);
+
 		while (board.isGameOver().first == GameResultReason::NONE) {
 			movegen::legalmoves(moves, board);
 			Move picked_move;
-			start = std::chrono::high_resolution_clock::now();
-
-			sort(moves.begin(), moves.end(), [board] (Move a, Move b) {
-				int a_val = 0, b_val = 0;
-
-				if (a == Move::CASTLING) a_val = CASTLE; // Castle is encoded as king capturing rook in the library!
-				else if (board.isCapture(a)) {
-					int af = (int)((board.at<Piece>(a.from())).type());
-					int at = (int)((board.at<Piece>(a.to())).type());
-					
-					std::pair<int, int> key = std::make_pair(af, at % 6);
-					a_val = capture_score[key];
-				}
-
-				if (b == Move::CASTLING) b_val = CASTLE;
-				else if (board.isCapture(b)) {
-					int bf = (int)((board.at<Piece>(b.from())).type());
-					int bt = (int)((board.at<Piece>(b.to())).type());
-					
-					std::pair<int, int> key = std::make_pair(bf, bt % 6);
-					b_val = capture_score[key];
-				}
-
-				return a_val > b_val;
-			});
-
-			if (turn == Color::WHITE) fill(evals, evals + moves.size(), -MAX_SCORE);
-			else fill(evals, evals + moves.size(), MAX_SCORE);
-
-			std::vector<std::thread> children;
-			mutex mtx;
-			int alpha = -MAX_SCORE;
-			int beta = MAX_SCORE;
-
-			for (int i = 0; i < moves.size(); i++) {
-				const auto move = moves[i];
-				Board board_cp = board;
-				thread_limit.acquire(); 
-				children.emplace_back([board_cp = std::move(board_cp), move = std::move(move), turn, i, &alpha, &beta, &mtx]() mutable {
-					board_cp.makeMove(move);
-					evals[i] = minimax(mm_depth, alpha, beta, 1 - turn, board_cp);
-
-					if (turn == Color::WHITE && evals[i] > alpha) {
-						mtx.lock();
-						alpha = evals[i];
-						mtx.unlock();
-					} else if (turn == Color::BLACK && evals[i] < beta){
-						mtx.lock();
-						beta = evals[i];
-						mtx.unlock();
-					}
-					thread_limit.release();
-				});
-			}
-
-			for (auto& child : children) {
-        		if (child.joinable()) {
-            		child.join();
-				}
-    		}
-
-			int eval = evals[0];
-			picked_move = moves[0];
-			for (int i = 0; i < moves.size(); i++) {
-				if ((turn == Color::WHITE && eval < evals[i]) ||
-				(turn == Color::BLACK && eval > evals[i])) {
-					eval = evals[i];
-					picked_move = moves[i];
-				}
-			}
+			auto start = std::chrono::high_resolution_clock::now();
+			picked_move = findBestMove(board, mm_depth, MAX_THREAD);
 			auto end = std::chrono::high_resolution_clock::now();
-			chrono::duration<double> duration = end - start;
-
+			std::chrono::duration<double> duration = end - start;
 			if (!mute) {
 				std::cout << "Execution time: " << duration.count() << " seconds\n";
-				printf("eval: %d\n", eval);
 			}
 			string move_s = uci::moveToSan(board, picked_move);
 			if (turn == Color::WHITE) {
@@ -244,12 +161,12 @@ int main (int argc, char *argv[]) {
 
 		std::cout << game_pgn << endl;
 	} else { // engine mode
-		Color turn = fen_player_color(fen_string);
 		Board board = Board(fen_string);
+		Color turn = board.sideToMove();
 		Movelist moves;
 		movegen::legalmoves(moves, board);
 		Move picked_move;
-		start = std::chrono::high_resolution_clock::now();
+		auto start = std::chrono::high_resolution_clock::now();
 		int evals[moves.size()];
 
 		if (turn == Color::WHITE) fill(evals, evals + moves.size(), -MAX_SCORE);
