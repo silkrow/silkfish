@@ -19,7 +19,6 @@ int mm_depth = DEFAULT_DEPTH_MM;
 float time_limit = 0; // Not being used.
 bool debug_mode = false; 
 int evals[1000];
-std::counting_semaphore<MAX_THREAD> thread_limit(MAX_THREAD);
 
 void usage_error() {
 	std::cout << "Usage: ./silkrow <-flag1> <option1> <-flag2> <option2> ... <-fen> {fen_string}" << endl;

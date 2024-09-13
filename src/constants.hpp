@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <semaphore>
+#include <thread>
 
 const int MAX_SCORE = 100000;
 const int W_WIN_THRE = MAX_SCORE - 50;
@@ -15,14 +16,13 @@ const int DEFAULT_DEPTH_Q = 3;
 
 const int PIECE_VAL[6] = {1, 3, 3, 5, 9, 0};
 const int RAND_MOVE_THRE = 10;
-const int MAX_THREAD = 7;
+const int MAX_THREAD = std::thread::hardware_concurrency();
 
 extern int quiescence_depth;
 extern int mm_depth;
 extern float time_limit;
 extern bool debug_mode; // Not being used.
 extern int evals[1000];
-extern std::counting_semaphore<MAX_THREAD> thread_limit;
 
 
 const int PST[6][BOARD_SIZE] = {{// PAWN

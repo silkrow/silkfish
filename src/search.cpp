@@ -14,8 +14,6 @@ std::mutex queue_mutex;
 std::condition_variable condition;
 std::atomic<bool> stop;
 std::atomic<int> active_tasks{0};
-int max_threads;
-
 LennyPOOL::LennyPOOL(int max_threads) : max_threads(max_threads), stop(false) {
     for (int i = 0; i < max_threads; ++i) {
         threads.emplace_back([this, i] {
