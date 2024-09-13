@@ -154,6 +154,16 @@ int minimax (int mm_depth, int alpha, int beta, Color color, Board board) {
     chess::Movelist moves;
     chess::movegen::legalmoves(moves, board);
 
+    if (board.isGameOver().second == GameResult::DRAW) {
+		return 0;
+	}
+
+	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
+		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
+	}
+
+    sort_moves(moves, board);
+
 	if (mm_depth == 0) {
 		if (appear_quiet(board)) {
 			return evaluation(board);
@@ -194,15 +204,6 @@ int minimax (int mm_depth, int alpha, int beta, Color color, Board board) {
 		}
 	}
 
-	if (board.isGameOver().second == GameResult::DRAW) {
-		return 0;
-	}
-
-	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
-		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
-	}
-
-    sort_moves(moves, board);
     int best_score = color == chess::Color::WHITE ? -MAX_SCORE : MAX_SCORE;
 
     for (const auto& move : moves) {

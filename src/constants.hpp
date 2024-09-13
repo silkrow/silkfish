@@ -17,8 +17,6 @@ const int PIECE_VAL[6] = {1, 3, 3, 5, 9, 0};
 const int RAND_MOVE_THRE = 10;
 const int MAX_THREAD = 7;
 
-const int MIN_DEPTH_FOR_PARALLALISM = 3;
-
 extern int quiescence_depth;
 extern int mm_depth;
 extern float time_limit;

@@ -16,8 +16,8 @@ using namespace std;
 
 int quiescence_depth = DEFAULT_DEPTH_Q;
 int mm_depth = DEFAULT_DEPTH_MM;
-float time_limit = 15.0;
-bool debug_mode = false; // Not being used.
+float time_limit = 0; // Not being used.
+bool debug_mode = false; 
 int evals[1000];
 std::counting_semaphore<MAX_THREAD> thread_limit(MAX_THREAD);
 
@@ -33,7 +33,6 @@ int main (int argc, char *argv[]) {
 	}
 
 	string fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
-	// fen_string = "4k3/8/6K1/8/3Q4/8/8/8 w - - 0 1"; // for testing purpose
 	bool demo_mode = false;
 	bool mute = false;
 
@@ -122,7 +121,7 @@ int main (int argc, char *argv[]) {
 	// Main logic
 	if (demo_mode) {
         if (!mute) {
-            std::cout << "Running in demo mode with mm_depth " << mm_depth << ", q_depth " << quiescence_depth << ", time_limit " << time_limit << ", engine vs engine." << endl;
+            std::cout << "Running in demo mode with mm_depth " << mm_depth << ", q_depth " << quiescence_depth << ", engine vs engine." << endl;
         }
 
 		Board board = Board(fen_string);
@@ -161,43 +160,26 @@ int main (int argc, char *argv[]) {
 
 		std::cout << game_pgn << endl;
 	} else { // engine mode
+		// a good testing fen for mate in 5, should use md = 9, correct move is h4: 2N5/5p2/6pp/7k/4N3/p3P1KP/1p6/3b4 w - - 0 1
+		// a good testing fen for mate in 4, should use md = 8, correct move is Bxg2: Q7/p1p1q1pk/3p2rp/4n3/3bP3/7b/PP3PPK/R1B2R2 b - - 0 1
 		Board board = Board(fen_string);
 		Color turn = board.sideToMove();
-		Movelist moves;
-		movegen::legalmoves(moves, board);
 		Move picked_move;
+
+		if (!mute) {
+			std::cout << "engine thinking ..." << endl;
+		}
+
 		auto start = std::chrono::high_resolution_clock::now();
-		int evals[moves.size()];
-
-		if (turn == Color::WHITE) fill(evals, evals + moves.size(), -MAX_SCORE);
-		else fill(evals, evals + moves.size(), MAX_SCORE);
-
-		for (int i = 0; i < moves.size(); i++) {
-			const auto move = moves[i];
-			board.makeMove(move);
-			evals[i] = minimax(mm_depth, -MAX_SCORE, MAX_SCORE, 1 - turn, board);	
-			board.unmakeMove(move);
-		}
-
-		int eval = evals[0];
-		picked_move = moves[0];
-		for (int i = 0; i < moves.size(); i++) {
-			if ((turn == Color::WHITE && eval < evals[i]) ||
-			(turn == Color::BLACK && eval > evals[i])) {
-				eval = evals[i];
-				picked_move = moves[i];
-			}
-		}
+		picked_move = findBestMove(board, mm_depth, MAX_THREAD);
 		auto end = std::chrono::high_resolution_clock::now();
 
 		chrono::duration<double> duration = end - start;
 		if (!mute) {
 			std::cout << "Execution time: " << duration.count() << " seconds\n";
-			printf("eval: %d\n", eval);
-			std::cout << "Engine mm_depth: " << mm_depth  << ", q_depth: " << quiescence_depth << ", time_limit: " << time_limit << "s" << endl;
+			std::cout << "Engine mm_depth: " << mm_depth  << ", q_depth: " << quiescence_depth << endl;
 		}
 		string move_s = uci::moveToSan(board, picked_move);
-		// board.makeMove(picked_move);
 		std::cout << move_s << endl;
 	}
     return 0;

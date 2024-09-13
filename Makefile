@@ -8,7 +8,7 @@ TARGET = silkfish
 
 all: $(TARGET)
 	@echo "Build complete. Cleaning up object files..."
-	$(MAKE) clear
+	rm -f $(OBJ)
 
 $(TARGET): $(OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)
