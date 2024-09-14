@@ -82,7 +82,7 @@ void handle_uci_command() {
                 time_left = stoi(command.substr(btime_pos + 6));
             }
 
-            if (time_left > 1*60*1000) mm_depth = 8; 
+            if (time_left > 10*60*1000) mm_depth = 8; 
 			else if (time_left > 4*60*1000) mm_depth = 7;
 			else if (time_left > 1*60*1000) mm_depth = 6;
 			else mm_depth = 5;
