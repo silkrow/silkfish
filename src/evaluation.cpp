@@ -63,6 +63,18 @@ int evaluation(chess::Board& board) {
 	return evaluation;
 }
 
+bool is_capture_move(const chess::Board& board, const chess::Move& move) {
+    const chess::Piece& from_piece = board.at<chess::Piece>(move.from());
+    const chess::Piece& to_piece = board.at<chess::Piece>(move.to());
+    if (from_piece.type() == chess::PieceType::NONE) {
+        return false;
+    }
+    if (to_piece.type() != chess::PieceType::NONE && to_piece.color() != from_piece.color()) {
+        return true;
+    }
+    return false;
+}
+
 bool appear_quiet(chess::Board board) {
 	if (board.inCheck())
 		return false;
@@ -72,7 +84,7 @@ bool appear_quiet(chess::Board board) {
 	for (int i = 0; i < moves.size(); i++) {
 		const auto move = moves[i];
 		board.makeMove(move);
-		if (board.isCapture(move)) {
+		if (is_capture_move(board, move)) {
 			int attacker_val = PIECE_VAL[(int)((board.at<chess::Piece>(move.from())).type())];
 			int victim_val = PIECE_VAL[(int)((board.at<chess::Piece>(move.to())).type())];
 			if (attacker_val < victim_val) {
