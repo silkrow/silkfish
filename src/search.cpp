@@ -166,41 +166,39 @@ int minimax (int mm_depth, int alpha, int beta, Color color, Board board) {
 		if (appear_quiet(board)) {
 			return evaluation(board);
 		} else {
-			// if (color == Color::WHITE) {
-			// 	int max_eval = -MAX_SCORE;
-			// 	for (int i = 0; i < moves.size(); i++) {
-			// 		const auto move = moves[i];
-			// 		board.makeMove(move);
-			// 		int eval = quiescence_search(quiescence_depth, alpha, beta, 1 - color, board);
-			// 		board.unmakeMove(move);
+			if (color == Color::WHITE) {
+				int max_eval = -MAX_SCORE;
+				for (int i = 0; i < moves.size(); i++) {
+					const auto move = moves[i];
+					board.makeMove(move);
+					int eval = quiescence_search(quiescence_depth, alpha, beta, 1 - color, board);
+					board.unmakeMove(move);
 
-			// 		max_eval = eval > max_eval ? eval:max_eval;
-			// 		alpha = alpha > max_eval ? alpha:max_eval;
+					max_eval = eval > max_eval ? eval:max_eval;
+					alpha = alpha > max_eval ? alpha:max_eval;
 
-			// 		if (beta <= alpha) break;
-			// 	}
-			// 	if (max_eval < B_WIN_THRE) return max_eval + 1;
-			// 	else if (max_eval > W_WIN_THRE) return max_eval - 1;
-			// 	return max_eval;
-			// } else {
-			// 	int min_eval = MAX_SCORE;
-			// 	for (int i = 0; i < moves.size(); i++) {
-			// 		const auto move = moves[i];
-			// 		board.makeMove(move);
-			// 		int eval = quiescence_search(quiescence_depth, alpha, beta, 1 - color, board);
-			// 		board.unmakeMove(move);
+					if (beta <= alpha) break;
+				}
+				if (max_eval < B_WIN_THRE) return max_eval + 1;
+				else if (max_eval > W_WIN_THRE) return max_eval - 1;
+				return max_eval;
+			} else {
+				int min_eval = MAX_SCORE;
+				for (int i = 0; i < moves.size(); i++) {
+					const auto move = moves[i];
+					board.makeMove(move);
+					int eval = quiescence_search(quiescence_depth, alpha, beta, 1 - color, board);
+					board.unmakeMove(move);
 
-			// 		min_eval = eval < min_eval ? eval:min_eval;
-			// 		beta = beta < min_eval ? beta:min_eval;
+					min_eval = eval < min_eval ? eval:min_eval;
+					beta = beta < min_eval ? beta:min_eval;
 
-			// 		if (beta <= alpha) break;
-			// 	}
-			// 	if (min_eval < B_WIN_THRE) return min_eval + 1;
-			// 	else if (min_eval > W_WIN_THRE) return min_eval - 1;
-			// 	return min_eval;
-			// }
-            int eval = quiescence_search(4, alpha, beta, color, board);
-            return eval;
+					if (beta <= alpha) break;
+				}
+				if (min_eval < B_WIN_THRE) return min_eval + 1;
+				else if (min_eval > W_WIN_THRE) return min_eval - 1;
+				return min_eval;
+			}
 		}
 	}
 
