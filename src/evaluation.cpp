@@ -49,13 +49,29 @@ int evaluation(chess::Board& board) {
 		return board.sideToMove() == chess::Color::BLACK ? MAX_SCORE:-MAX_SCORE;
 	}
 
+    // Define endgame: 
+    // Botj sides have less than 13 points of materials
+	int white_points = 0, black_points = 0;
+    for (int i = 0; i < BOARD_SIZE; i++) {
+		auto piece = board.at(chess::Square((uint8_t)i));
+		if (piece != chess::Piece::NONE) {
+			if (piece.color() == chess::Color::WHITE) {
+				white_points += PIECE_VAL[piece.type()];
+			} else {
+				black_points += PIECE_VAL[piece.type()];
+			}
+		} 
+	}    
+
+    int offset = (white_points <= 13 && black_points <= 13)? 1:0; // 1 for eg, 0 for mg
+
 	for (int i = 0; i < BOARD_SIZE; i++) {
 		auto piece = board.at(chess::Square((uint8_t)i));
 		if (piece != chess::Piece::NONE) {
 			if (piece.color() == chess::Color::WHITE) {
-				evaluation += PST[piece.type()][BOARD_SIZE - 1 - (8*(i/8) + 7 - i%8)];
+				evaluation += PESTO_POSITION[offset][piece.type()][BOARD_SIZE - 1 - (8*(i/8) + 7 - i%8)] + PESTO_VALUE[offset][piece.type()];
 			} else {
-				evaluation -= PST[piece.type()][i];
+				evaluation -= (PESTO_POSITION[offset][piece.type()][i] + PESTO_VALUE[offset][piece.type()]);
 			}
 		} 
 	}
