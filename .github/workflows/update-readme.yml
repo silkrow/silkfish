@@ -31,3 +31,5 @@ jobs:
         git add README.md
         git commit -m "Update Lichess bot rating"
         git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
