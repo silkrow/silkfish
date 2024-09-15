@@ -3,6 +3,8 @@
   <img src="images/logo64.gif" alt="Silkfish Logo" style="vertical-align: middle;"/>
 </h1>
 
+Rapid Rating on Lichess: 
+
 **2024.9.7:** silkfish is now a Lichess Bot &#129302; on lichess.org! View its [profile](https://lichess.org/@/silkfish).
     
 ## 1. Compile the Engine

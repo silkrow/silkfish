@@ -1,0 +1,33 @@
+name: Update README with Lichess Bot Rating
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs every hour
+  workflow_dispatch: # Allows you to trigger manually from the Actions tab
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Fetch Lichess Bot Rating
+      id: fetch_rating
+      run: |
+        BOT_USERNAME="silkfish"
+        RATING=$(curl -s "https://lichess.org/api/user/${BOT_USERNAME}" | jq '.perfs.rapid.rating')
+        echo "::set-output name=rating::${RATING}"
+
+    - name: Update README
+      run: |
+        sed -i "s/\(Rapid Rating on Lichess: \)[0-9]*/\1${{ steps.fetch_rating.outputs.rating }}/" README.md
+
+    - name: Commit changes
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "GitHub Actions"
+        git add README.md
+        git commit -m "Update Lichess bot rating"
+        git push
