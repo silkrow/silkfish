@@ -83,3 +83,4 @@ Below is a result table of ```silkfish``` on the ERET test.
 |------------|------------|------------|------------|
 | 93f488c | 13 (without time limit)| 11.71% | 2024.9.6 |
 | aa7f91f | 11 | 9.91% | 2024.9.7 |
+| 0c1a8a5 | 15 (without time limit)| 13.51% | 2024.9.15 |
