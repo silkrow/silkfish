@@ -21,7 +21,8 @@ def run_test(fen, best_move):
     board_fen = fen.strip()
 
     mm_depth = 8
-    command = ['./silkfish', '-md', str(mm_depth), '-fen', board_fen]
+    time_limit = 15
+    command = ['./silkfish', '-md', str(mm_depth), '-t', str(time_limit), '-fen', board_fen]
 
     global task_done, output
     task_done = False
