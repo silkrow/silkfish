@@ -19,8 +19,9 @@ def spinner():
 
 def run_test(fen, best_move):
     board_fen = fen.strip()
-    depth = 7
-    command = ['./silkfish', str(depth), board_fen]
+
+    mm_depth = 8
+    command = ['./silkfish', '-md', str(mm_depth), '-fen', board_fen]
 
     global task_done, output
     task_done = False
