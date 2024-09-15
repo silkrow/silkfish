@@ -3,7 +3,14 @@
   <img src="images/logo64.gif" alt="Silkfish Logo" style="vertical-align: middle;"/>
 </h1>
 
-Rapid Rating on Lichess: 
+<div align="center">
+
+![Lichess Bot Status](https://img.shields.io/badge/Lichess%20Bot-Online-brightgreen?style=flat-square&logo=lichess&logoColor=white)  
+![Lichess Bot Rating](https://img.shields.io/badge/Rapid_Rating-${{ steps.fetch_rating.outputs.rating }}-blue?style=flat-square&logo=chess)
+
+</div>
+
+---
 
 **2024.9.7:** silkfish is now a Lichess Bot &#129302; on lichess.org! View its [profile](https://lichess.org/@/silkfish).
     
