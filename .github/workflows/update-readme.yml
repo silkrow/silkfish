@@ -22,7 +22,7 @@ jobs:
 
     - name: Update README
       run: |
-        sed -i "s/\(Rapid Rating on Lichess: \)[0-9]*/\1${{ steps.fetch_rating.outputs.rating }}/" README.md
+        sed -i "s/Rapid_Rating-[0-9]*/Rapid_Rating-${{ steps.fetch_rating.outputs.rating }}/" README.md
 
     - name: Commit changes
       run: |
