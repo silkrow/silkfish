@@ -2,7 +2,7 @@ name: Update README with Lichess Bot Rating
 
 on:
   schedule:
-    - cron: '0 * * * *' # Runs every hour
+    - cron: '0 0 * * *' # Runs every day at midnight UTC
   workflow_dispatch: # Allows you to trigger manually from the Actions tab
 
 jobs:
