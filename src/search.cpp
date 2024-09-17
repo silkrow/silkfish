@@ -97,107 +97,124 @@ void sort_moves(chess::Movelist& moves, const chess::Board& board) {
 }
 
 
-int quiescence_search (int q_depth, int alpha, int beta, Color color, Board board) {
-	if (q_depth == 0 || appear_quiet(board)) return evaluation(board);
+std::pair<int, std::string> quiescence_search (int q_depth, int alpha, int beta, Color color, Board board) {
+	if (q_depth == 0 || appear_quiet(board)) return {evaluation(board), ""};
 
 	Movelist moves;
 	movegen::legalmoves(moves, board);
 
 	if (board.isGameOver().second == GameResult::DRAW) {
-		return 0;
+		return {0, ""};
 	}
 
 	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
-		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
+		return {board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE, ""};
 	}
+
+    string best_move_str = "";
 
 	if (color == Color::WHITE) {
 		int max_eval = -MAX_SCORE;
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int eval = quiescence_search(q_depth, alpha, beta, 1 - color, board);
+			auto [eval, prev_move_str] = quiescence_search(q_depth, alpha, beta, 1 - color, board);
 			board.unmakeMove(move);
 
-			max_eval = eval > max_eval ? eval:max_eval;
+			if (eval > max_eval) {
+                max_eval = eval;
+                best_move_str = "~" + uci::moveToSan(board, move) + " " + prev_move_str;  // Get the move as a string
+            }
 			alpha = alpha > max_eval ? alpha:max_eval;
 
 			if (beta <= alpha) break;
 		}
 
-		if (max_eval < B_WIN_THRE) return max_eval + 1;
-		else if (max_eval > W_WIN_THRE) return max_eval - 1;
-		return max_eval;
+		if (max_eval < B_WIN_THRE) return {max_eval + 1, best_move_str};
+		else if (max_eval > W_WIN_THRE) return {max_eval - 1, best_move_str};
+		return {max_eval, best_move_str};
 	} else {
 		int min_eval = MAX_SCORE;
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			int eval = quiescence_search(q_depth, alpha, beta, 1 - color, board);
+			auto [eval, prev_move_str] = quiescence_search(q_depth, alpha, beta, 1 - color, board);
 			board.unmakeMove(move);
 
-			min_eval = eval < min_eval ? eval:min_eval;
+			if (eval < min_eval) {
+                min_eval = eval;
+                best_move_str = "~" + uci::moveToSan(board, move) + " " + prev_move_str;  // Get the move as a string
+            }
 			beta = beta < min_eval ? beta:min_eval;
 
 			if (beta <= alpha) break;
 		}
 
-		if (min_eval < B_WIN_THRE) return min_eval + 1;
-		else if (min_eval > W_WIN_THRE) return min_eval - 1;
-		return min_eval;
+		if (min_eval < B_WIN_THRE) return {min_eval + 1, best_move_str};
+		else if (min_eval > W_WIN_THRE) return {min_eval - 1, best_move_str};
+		return {min_eval, best_move_str};
 	}
 }
 
-int minimax (int mm_depth, int alpha, int beta, Color color, Board board) {
+std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color color, Board board) {
     chess::Movelist moves;
     chess::movegen::legalmoves(moves, board);
 
     if (board.isGameOver().second == GameResult::DRAW) {
-		return 0;
+		return {0, ""};
 	}
 
 	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
-		return board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE;
+		return {board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE, ""};
 	}
 
     sort_moves(moves, board);
 
+    std::string best_move_str = "";
+    std::string prev_move_str = "";
+
 	if (mm_depth == 0) {
 		if (appear_quiet(board)) {
-			return evaluation(board);
+			return {evaluation(board), ""};
 		} else {
 			if (color == Color::WHITE) {
 				int max_eval = -MAX_SCORE;
 				for (int i = 0; i < moves.size(); i++) {
 					const auto move = moves[i];
 					board.makeMove(move);
-					int eval = quiescence_search(quiescence_depth, alpha, beta, 1 - color, board);
+					auto [eval, prev_move_str] = quiescence_search(quiescence_depth, alpha, beta, 1 - color, board);
 					board.unmakeMove(move);
 
-					max_eval = eval > max_eval ? eval:max_eval;
+					if (eval > max_eval) {
+                        max_eval = eval;
+                        best_move_str = uci::moveToSan(board, move) + " " + prev_move_str;  // Get the move as a string
+                    }
 					alpha = alpha > max_eval ? alpha:max_eval;
 
 					if (beta <= alpha) break;
 				}
-				if (max_eval < B_WIN_THRE) return max_eval + 1;
-				else if (max_eval > W_WIN_THRE) return max_eval - 1;
-				return max_eval;
+				if (max_eval < B_WIN_THRE) return {max_eval + 1, best_move_str};
+				else if (max_eval > W_WIN_THRE) return {max_eval - 1, best_move_str};
+				return {max_eval, best_move_str};
 			} else {
 				int min_eval = MAX_SCORE;
 				for (int i = 0; i < moves.size(); i++) {
 					const auto move = moves[i];
 					board.makeMove(move);
-					int eval = quiescence_search(quiescence_depth, alpha, beta, 1 - color, board);
+					auto [eval, prev_move_str] = quiescence_search(quiescence_depth, alpha, beta, 1 - color, board);
 					board.unmakeMove(move);
 
-					min_eval = eval < min_eval ? eval:min_eval;
+					if (eval < min_eval) {
+                        min_eval = eval;
+                        best_move_str = uci::moveToSan(board, move) + " " + prev_move_str;  // Get the move as a string
+                    }
 					beta = beta < min_eval ? beta:min_eval;
 
 					if (beta <= alpha) break;
 				}
-				if (min_eval < B_WIN_THRE) return min_eval + 1;
-				else if (min_eval > W_WIN_THRE) return min_eval - 1;
-				return min_eval;
+				if (min_eval < B_WIN_THRE) return {min_eval + 1, best_move_str};
+				else if (min_eval > W_WIN_THRE) return {min_eval - 1, best_move_str};
+				return {min_eval, best_move_str};
 			}
 		}
 	}
@@ -206,14 +223,20 @@ int minimax (int mm_depth, int alpha, int beta, Color color, Board board) {
 
     for (const auto& move : moves) {
         board.makeMove(move);
-        int score = minimax(mm_depth - 1, alpha, beta, chess::Color(1 - int(color)), board);
+        auto [score, prev_move_str] = minimax(mm_depth - 1, alpha, beta, chess::Color(1 - int(color)), board);
         board.unmakeMove(move);
 
         if (color == chess::Color::WHITE) {
-            best_score = std::max(best_score, score);
+            if (score > best_score) {
+                best_score = score;
+                best_move_str = uci::moveToSan(board, move) + " " + prev_move_str;  // Record the best move
+            }
             alpha = std::max(alpha, best_score);
         } else {
-            best_score = std::min(best_score, score);
+            if (score < best_score) {
+                best_score = score;
+                best_move_str = uci::moveToSan(board, move) + " " + prev_move_str;  // Record the best move
+            }
             beta = std::min(beta, best_score);
         }
 
@@ -222,9 +245,9 @@ int minimax (int mm_depth, int alpha, int beta, Color color, Board board) {
         }
     }
 
-    if (best_score < B_WIN_THRE) return best_score + 1;
-    else if (best_score > W_WIN_THRE) return best_score - 1;
-    return best_score;
+    if (best_score < B_WIN_THRE) return {best_score + 1, best_move_str};
+    else if (best_score > W_WIN_THRE) return {best_score - 1, best_move_str};
+    return {best_score, best_move_str};
 }
 
 chess::Move findBestMove(chess::Board& board, int depth, int max_threads) {
@@ -248,8 +271,11 @@ chess::Move findBestMove(chess::Board& board, int depth, int max_threads) {
         lenny_pool.run([&, i]() {
             chess::Board board_copy = board;
             board_copy.makeMove(moves[i]);
-            evals[i] = minimax(depth - 1, alpha.load(), beta.load(), 
+            auto[eval, pv_move] = minimax(depth - 1, alpha.load(), beta.load(), 
                                chess::Color(1 - int(current_turn)), board_copy);
+
+            evals[i] = eval;
+            cout << i << " " << uci::moveToSan(board, moves[i]) << " " << pv_move << endl;
             if (current_turn == chess::Color::WHITE) {
                 int current_alpha = alpha.load();
                 while (evals[i] > current_alpha && 
