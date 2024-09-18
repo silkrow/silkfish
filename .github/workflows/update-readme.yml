@@ -1,4 +1,4 @@
-name: Update README with Lichess Bot Rating
+name: Update README with Lichess Bot Ratings
 
 on:
   schedule:
@@ -13,23 +13,26 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Fetch Lichess Bot Rating
-      id: fetch_rating
+    - name: Fetch Lichess Bot Ratings
+      id: fetch_ratings
       run: |
         BOT_USERNAME="silkfish"
-        RATING=$(curl -s "https://lichess.org/api/user/${BOT_USERNAME}" | jq '.perfs.rapid.rating')
-        echo "::set-output name=rating::${RATING}"
+        RAPID_RATING=$(curl -s "https://lichess.org/api/user/${BOT_USERNAME}" | jq '.perfs.rapid.rating')
+        CLASSICAL_RATING=$(curl -s "https://lichess.org/api/user/${BOT_USERNAME}" | jq '.perfs.classical.rating')
+        echo "::set-output name=rapid_rating::${RAPID_RATING}"
+        echo "::set-output name=classical_rating::${CLASSICAL_RATING}"
 
     - name: Update README
       run: |
-        sed -i "s/Rapid_Rating-[0-9]*/Rapid_Rating-${{ steps.fetch_rating.outputs.rating }}/" README.md
+        sed -i "s/Rapid_Rating-[0-9]*/Rapid_Rating-${{ steps.fetch_ratings.outputs.rapid_rating }}/" README.md
+        sed -i "s/Classical_Rating-[0-9]*/Classical_Rating-${{ steps.fetch_ratings.outputs.classical_rating }}/" README.md
 
     - name: Commit changes
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "GitHub Actions"
         git add README.md
-        git commit -m "Update Lichess bot rating"
+        git commit -m "Update Lichess bot ratings"
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
