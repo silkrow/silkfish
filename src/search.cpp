@@ -275,7 +275,7 @@ chess::Move findBestMove(chess::Board& board, int depth, int max_threads) {
                                chess::Color(1 - int(current_turn)), board_copy);
 
             evals[i] = eval;
-            cout << i << " " << uci::moveToSan(board, moves[i]) << " " << pv_move << endl;
+            // cout << i << " " << uci::moveToSan(board, moves[i]) << " " << pv_move << endl;
             if (current_turn == chess::Color::WHITE) {
                 int current_alpha = alpha.load();
                 while (evals[i] > current_alpha && 
