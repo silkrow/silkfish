@@ -6,8 +6,8 @@
 <div align="center">
 
 ![Lichess Bot Status](https://img.shields.io/badge/Lichess%20Bot-Online-brightgreen?style=flat-square&logo=lichess&logoColor=white)  
-![Lichess Bot Rating](https://img.shields.io/badge/Rapid_Rating-1715-blue?style=flat-square&logo=chess)
-![Lichess Bot Rating](https://img.shields.io/badge/Classical_Rating-1679-blue?style=flat-square&logo=chess)
+![Lichess Bot Rating](https://img.shields.io/badge/Rapid_Rating-1745-blue?style=flat-square&logo=chess)
+![Lichess Bot Rating](https://img.shields.io/badge/Classical_Rating-1675-blue?style=flat-square&logo=chess)
 
 </div>
 
