@@ -14,6 +14,10 @@
 ---
 
 **2024.9.7:** silkfish is now a Lichess Bot &#129302; on lichess.org! View its [profile](https://lichess.org/@/silkfish).
+
+TODOs
+- [ ] Null move pruning.
+- [ ] Transposition table.  
     
 ## 1. Compile the Engine
 ***silkfish*** engine is written in c++, so you do need a ```g++``` compiler to compile it. 
