@@ -6,7 +6,7 @@
 <div align="center">
 
 ![Lichess Bot Status](https://img.shields.io/badge/Lichess%20Bot-Online-brightgreen?style=flat-square&logo=lichess&logoColor=white)  
-![Lichess Bot Rating](https://img.shields.io/badge/Rapid_Rating-1733-blue?style=flat-square&logo=chess)
+![Lichess Bot Rating](https://img.shields.io/badge/Rapid_Rating-1752-blue?style=flat-square&logo=chess)
 ![Lichess Bot Rating](https://img.shields.io/badge/Classical_Rating-1712-blue?style=flat-square&logo=chess)
 
 </div>
