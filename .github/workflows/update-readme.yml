@@ -19,13 +19,13 @@ jobs:
         BOT_USERNAME="silkfish"
         RAPID_RATING=$(curl -s "https://lichess.org/api/user/${BOT_USERNAME}" | jq '.perfs.rapid.rating')
         CLASSICAL_RATING=$(curl -s "https://lichess.org/api/user/${BOT_USERNAME}" | jq '.perfs.classical.rating')
-        echo "::set-output name=rapid_rating::${RAPID_RATING}"
-        echo "::set-output name=classical_rating::${CLASSICAL_RATING}"
+        echo "rapid_rating=${RAPID_RATING}" >> $GITHUB_ENV
+        echo "classical_rating=${CLASSICAL_RATING}" >> $GITHUB_ENV
 
     - name: Update README
       run: |
-        sed -i "s/Rapid_Rating-[0-9]*/Rapid_Rating-${{ steps.fetch_ratings.outputs.rapid_rating }}/" README.md
-        sed -i "s/Classical_Rating-[0-9]*/Classical_Rating-${{ steps.fetch_ratings.outputs.classical_rating }}/" README.md
+        sed -i "s/Rapid_Rating-[0-9]*/Rapid_Rating-${{ env.rapid_rating }}/" README.md
+        sed -i "s/Classical_Rating-[0-9]*/Classical_Rating-${{ env.classical_rating }}/" README.md
 
     - name: Commit changes
       run: |
