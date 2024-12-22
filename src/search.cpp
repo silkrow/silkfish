@@ -1,4 +1,3 @@
-#include <chrono>
 #include "chess.hpp"
 #include "search.hpp"
 #include "evaluation.hpp"
@@ -6,69 +5,6 @@
 
 using namespace chess;
 using namespace std;
-
-
-std::vector<std::thread> threads;
-std::queue<std::function<void()>> tasks;
-std::mutex queue_mutex;
-std::condition_variable condition;
-std::atomic<bool> stop;
-std::atomic<int> active_tasks{0};
-LennyPOOL::LennyPOOL(int max_threads) : max_threads(max_threads), stop(false) {
-    for (int i = 0; i < max_threads; ++i) {
-        threads.emplace_back([this, i] {
-            while (true) {
-                std::function<void()> task;
-                {
-                    std::unique_lock<std::mutex> lock(queue_mutex);
-                    condition.wait(lock, [this] { return stop || !tasks.empty(); });
-                    if (stop && tasks.empty()) {
-                        // std::cout << "Thread " << i << " exiting." << std::endl;
-                        return;
-                    }
-                    task = std::move(tasks.front());
-                    tasks.pop();
-                }
-                active_tasks++;
-                task();
-                active_tasks--;
-                {
-                    std::lock_guard<std::mutex> lock(queue_mutex);
-                    condition.notify_all();
-                }
-            }
-        });
-    }
-}
-
-template<class F>
-void LennyPOOL::run(F&& f) {
-    {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        tasks.emplace(std::forward<F>(f));
-    }
-    condition.notify_one();
-}
-
-void LennyPOOL::wait_all() {
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    while (true) {
-        if (tasks.empty() && active_tasks == 0) break;
-        condition.wait(lock);
-    }
-}
-LennyPOOL::~LennyPOOL() {
-    {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        stop = true;
-    }
-    condition.notify_all(); 
-    for (std::thread& thread : threads) {
-        if (thread.joinable()) {
-            thread.join();
-        }
-    }
-}
 
 void sort_moves(chess::Movelist& moves, const chess::Board& board) {
     std::sort(moves.begin(), moves.end(), [&board](const chess::Move& a, const chess::Move& b) {
@@ -262,34 +198,30 @@ chess::Move findBestMove(chess::Board& board, int depth, int max_threads) {
     std::vector<int> evals(moves.size());
     std::atomic<int> alpha(-MAX_SCORE);
     std::atomic<int> beta(MAX_SCORE);
-    LennyPOOL lenny_pool(max_threads);
 
     chess::Color current_turn = board.sideToMove();
     auto start_time = std::chrono::high_resolution_clock::now();
 
     for (size_t i = 0; i < moves.size(); ++i) {
-        lenny_pool.run([&, i]() {
-            chess::Board board_copy = board;
-            board_copy.makeMove(moves[i]);
-            auto[eval, pv_move] = minimax(depth - 1, alpha.load(), beta.load(), 
-                               chess::Color(1 - int(current_turn)), board_copy);
+        chess::Board board_copy = board;
+        board_copy.makeMove(moves[i]);
+        auto[eval, pv_move] = minimax(depth - 1, alpha.load(), beta.load(), 
+                            chess::Color(1 - int(current_turn)), board_copy);
 
-            evals[i] = eval;
-            // cout << i << " " << uci::moveToSan(board, moves[i]) << " " << pv_move << endl;
-            if (current_turn == chess::Color::WHITE) {
-                int current_alpha = alpha.load();
-                while (evals[i] > current_alpha && 
-                       !alpha.compare_exchange_weak(current_alpha, evals[i])) {
-                }
-            } else {
-                int current_beta = beta.load();
-                while (evals[i] < current_beta && 
-                       !beta.compare_exchange_weak(current_beta, evals[i])) {
-                }
+        evals[i] = eval;
+        // cout << i << " " << uci::moveToSan(board, moves[i]) << " " << pv_move << endl;
+        if (current_turn == chess::Color::WHITE) {
+            int current_alpha = alpha.load();
+            while (evals[i] > current_alpha && 
+                    !alpha.compare_exchange_weak(current_alpha, evals[i])) {
             }
-        });
+        } else {
+            int current_beta = beta.load();
+            while (evals[i] < current_beta && 
+                    !beta.compare_exchange_weak(current_beta, evals[i])) {
+            }
+        }
     }
-    lenny_pool.wait_all();
     size_t best_index = 0;
     int best_eval = current_turn == chess::Color::WHITE ? -MAX_SCORE : MAX_SCORE;
 

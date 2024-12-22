@@ -16,9 +16,6 @@ using namespace std;
 
 int quiescence_depth = DEFAULT_DEPTH_Q;
 int mm_depth = DEFAULT_DEPTH_MM;
-float time_limit = 0; // Not being used.
-bool debug_mode = false; 
-int evals[1000];
 
 void usage_error() {
 	std::cout << "Usage: ./silkrow <-flag1> <option1> <-flag2> <option2> ... <-fen> {fen_string}" << endl;
@@ -81,23 +78,6 @@ int main (int argc, char *argv[]) {
 		}
 	}
 
-	const string &time_limit_s = input.getCmdOption("-t");
-	if (!time_limit_s.empty()) {
-		try {
-			size_t pos;
-			time_limit = (double) stoi(time_limit_s, &pos);
-			if (pos != time_limit_s.length()) {
-				usage_error();
-				return 1;
-			}
-		} catch (const std::invalid_argument&) {
-			usage_error();
-			return 1;
-    	} catch (const std::out_of_range&) {
-        	usage_error();
-			return 1;
-		}
-	}
 
 	if (!demo_mode) {
 		int arg_start = 0;
@@ -131,7 +111,6 @@ int main (int argc, char *argv[]) {
 		string game_pgn = "";
 		int round = 1;
 		
-		LennyPOOL lenny_pool(MAX_THREAD);
 
 		while (board.isGameOver().first == GameResultReason::NONE) {
 			movegen::legalmoves(moves, board);

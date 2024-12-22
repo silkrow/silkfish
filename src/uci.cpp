@@ -1,6 +1,4 @@
 #include "uci.hpp"
-
-#include <thread>
 #include <chrono>
 #include "search.hpp"
 #include "evaluation.hpp"
@@ -12,6 +10,7 @@ using namespace chess;
 ///////////////// UCI implementation //////////////////
 
 int move_overhead = 0; // Default value
+bool debug_mode = false; 
 
 void send_uci_info() {
     std::cout << "id name silkrow" << endl;
@@ -74,7 +73,7 @@ void handle_uci_command() {
 			size_t btime_pos = command.find("btime");
             size_t wtime_pos = command.find("wtime");
 
-			int time_left;
+			int time_left = 0;
 
 			if (board.sideToMove() == Color::WHITE && wtime_pos != string::npos) {
                 time_left = stoi(command.substr(wtime_pos + 6));
@@ -90,7 +89,6 @@ void handle_uci_command() {
             // Run search algorithm
             Movelist moves;
             movegen::legalmoves(moves, board);
-			LennyPOOL lenny_pool(MAX_THREAD);
 			Move picked_move = findBestMove(board, mm_depth, MAX_THREAD);
             send_best_move(picked_move);
         } else if (command == "stop") {
