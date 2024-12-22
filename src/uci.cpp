@@ -10,7 +10,7 @@ using namespace chess;
 ///////////////// UCI implementation //////////////////
 
 int move_overhead = 0; // Default value
-bool debug_mode = false; 
+bool debug_mode = true; 
 
 void send_uci_info() {
     std::cout << "id name silkrow" << endl;
@@ -89,7 +89,7 @@ void handle_uci_command() {
             // Run search algorithm
             Movelist moves;
             movegen::legalmoves(moves, board);
-			Move picked_move = findBestMove(board, mm_depth, MAX_THREAD);
+			Move picked_move = findBestMove(board, mm_depth);
             send_best_move(picked_move);
         } else if (command == "stop") {
             // Stop the search and return the best move found so far

@@ -11,12 +11,11 @@ const int BOARD_SIZE = 64;
 
 const int CASTLE = 10;
 
-const int DEFAULT_DEPTH_MM = 6;
+const int DEFAULT_DEPTH_MM = 7;
 const int DEFAULT_DEPTH_Q = 3;
 
 const int PIECE_VAL[6] = {1, 3, 3, 5, 9, 0};
 const int RAND_MOVE_THRE = 10;
-const int MAX_THREAD = std::thread::hardware_concurrency();
 
 extern int quiescence_depth;
 extern int mm_depth;

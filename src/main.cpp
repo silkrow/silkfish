@@ -4,6 +4,7 @@
 #include "evaluation.hpp"
 #include "search.hpp"
 #include "uci.hpp"
+#include "zobrist_hash.hpp"
 
 #include <chrono>
 
@@ -23,6 +24,10 @@ void usage_error() {
 }
 
 int main (int argc, char *argv[]) {
+
+	// Initialization 
+	initialize_zobrist();
+
 	if (argc == 1) {      // UCI mode if no argument passed in.
 		handle_uci_command();
 		return 0;
@@ -116,7 +121,7 @@ int main (int argc, char *argv[]) {
 			movegen::legalmoves(moves, board);
 			Move picked_move;
 			auto start = std::chrono::high_resolution_clock::now();
-			picked_move = findBestMove(board, mm_depth, MAX_THREAD);
+			picked_move = findBestMove(board, mm_depth);
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> duration = end - start;
 			if (!mute) {
@@ -149,7 +154,7 @@ int main (int argc, char *argv[]) {
 		}
 
 		auto start = std::chrono::high_resolution_clock::now();
-		picked_move = findBestMove(board, mm_depth, MAX_THREAD);
+		picked_move = findBestMove(board, mm_depth);
 		auto end = std::chrono::high_resolution_clock::now();
 
 		chrono::duration<double> duration = end - start;
