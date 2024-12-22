@@ -2,7 +2,6 @@
 #include "search.hpp"
 #include "evaluation.hpp"
 #include "constants.hpp"
-#include "zobrist_hash.hpp"
 #include <unordered_map>
 #include <string>
 
@@ -41,6 +40,13 @@ void sort_moves(chess::Movelist& moves, const chess::Board& board) {
     });
 }
 
+void table_insert(uint64_t hash, std::pair<int, string> pair) {
+    if (TTable.size() >= TTABLE_MAX) {
+        TTable.clear();
+    }
+
+    TTable[hash] = pair;
+}
 
 std::pair<int, std::string> quiescence_search (int q_depth, int alpha, int beta, Color color, Board board) {
 
@@ -132,7 +138,7 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
 
 	if (mm_depth == 0) {
 		if (appear_quiet(board)) {
-            TTable[board_hash] = {evaluation(board), ""};
+            table_insert(board_hash, {evaluation(board), ""});
 			return {evaluation(board), ""};
 		} else {
 			if (color == Color::WHITE) {
@@ -152,14 +158,14 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
 					if (beta <= alpha) break;
 				}
 				if (max_eval < B_WIN_THRE) {
-                    TTable[board_hash] = {max_eval + 1, best_move_str};
+                    table_insert(board_hash, {max_eval + 1, best_move_str});
                     return {max_eval + 1, best_move_str};
                 }
 				else if (max_eval > W_WIN_THRE) {
-                    TTable[board_hash] = {max_eval - 1, best_move_str};
+                    table_insert(board_hash, {max_eval - 1, best_move_str});
                     return {max_eval - 1, best_move_str};
                 }
-                TTable[board_hash] = {max_eval, best_move_str};
+                table_insert(board_hash, {max_eval, best_move_str});
 				return {max_eval, best_move_str};
 			} else {
 				int min_eval = MAX_SCORE;
@@ -178,14 +184,14 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
 					if (beta <= alpha) break;
 				}
 				if (min_eval < B_WIN_THRE) {
-                    TTable[board_hash] = {min_eval + 1, best_move_str};
+                    table_insert(board_hash, {min_eval + 1, best_move_str});
                     return {min_eval + 1, best_move_str};
                 }
 				else if (min_eval > W_WIN_THRE) {
-                    TTable[board_hash] = {min_eval - 1, best_move_str};
+                    table_insert(board_hash, {min_eval - 1, best_move_str});
                     return {min_eval - 1, best_move_str};
                 }
-                TTable[board_hash] = {min_eval, best_move_str};
+                table_insert(board_hash, {min_eval, best_move_str});
 				return {min_eval, best_move_str};
 			}
 		}
@@ -195,8 +201,7 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
 
     for (const auto& move : moves) {
         board.makeMove(move);
-
-        uint64_t new_hash = compute_zobrist_hash(board) ^ (mm_depth - 1);
+        uint64_t new_hash = board.hash() ^ (mm_depth - 1);
         auto [score, prev_move_str] = minimax(mm_depth - 1, alpha, beta, chess::Color(1 - int(color)), board, new_hash);
         board.unmakeMove(move);
 
@@ -220,14 +225,14 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
     }
 
     if (best_score < B_WIN_THRE) {
-        TTable[board_hash] = {best_score + 1, best_move_str};
+        table_insert(board_hash, {best_score + 1, best_move_str});
         return {best_score + 1, best_move_str};
     }
     else if (best_score > W_WIN_THRE) {
-        TTable[board_hash] = {best_score - 1, best_move_str};
+        table_insert(board_hash, {best_score - 1, best_move_str});
         return {best_score - 1, best_move_str};
     }
-    TTable[board_hash] = {best_score, best_move_str};
+    table_insert(board_hash, {best_score, best_move_str});
     return {best_score, best_move_str};
 }
 
@@ -254,13 +259,12 @@ chess::Move findBestMove(chess::Board& board, int depth) {
 
     for (size_t i = 0; i < moves.size(); ++i) {
         board.makeMove(moves[i]);
-        uint64_t board_hash = compute_zobrist_hash(board) ^ (depth - 1);
+        uint64_t board_hash = board.hash() ^ (depth - 1);
         auto[eval, pv_move] = minimax(depth - 1, alpha, beta, 
                             chess::Color(1 - int(current_turn)), board, board_hash);
 
         evals[i] = eval;
         board.unmakeMove(moves[i]);
-
 
         // cout << i << " " << uci::moveToSan(board, moves[i]) << " " << pv_move << endl;
         if (current_turn == chess::Color::WHITE) {
@@ -282,6 +286,7 @@ chess::Move findBestMove(chess::Board& board, int depth) {
     std::cout << "Best move index: " << best_index << " with eval: " << best_eval << std::endl;
     
     if (debug_mode) {
+
         std::cout << "Called minimax#: " << mm_cnt << ", called Qsearch#: " << q_cnt << std::endl;
     }
 

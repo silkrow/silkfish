@@ -4,7 +4,6 @@
 #include "evaluation.hpp"
 #include "search.hpp"
 #include "uci.hpp"
-#include "zobrist_hash.hpp"
 
 #include <chrono>
 
@@ -24,9 +23,6 @@ void usage_error() {
 }
 
 int main (int argc, char *argv[]) {
-
-	// Initialization 
-	initialize_zobrist();
 
 	if (argc == 1) {      // UCI mode if no argument passed in.
 		handle_uci_command();
