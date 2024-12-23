@@ -103,7 +103,7 @@ bool appear_quiet(chess::Board board) {
 			board.makeMove(move);
 			int attacker_val = PIECE_VAL[(int)((board.at<chess::Piece>(move.from())).type())];
 			int victim_val = PIECE_VAL[(int)((board.at<chess::Piece>(move.to())).type())];
-			if (attacker_val < victim_val) {
+			if (attacker_val <= victim_val) {
 				board.unmakeMove(move);
 				return false;
 			}

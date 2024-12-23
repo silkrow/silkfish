@@ -72,7 +72,7 @@ std::pair<int, std::string> quiescence_search (int q_depth, int alpha, int beta,
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			auto [eval, prev_move_str] = quiescence_search(q_depth, alpha, beta, 1 - color, board);
+			auto [eval, prev_move_str] = quiescence_search(q_depth-1, alpha, beta, 1 - color, board);
 			board.unmakeMove(move);
 
 			if (eval > max_eval) {
@@ -92,7 +92,7 @@ std::pair<int, std::string> quiescence_search (int q_depth, int alpha, int beta,
 		for (int i = 0; i < moves.size(); i++) {
 			const auto move = moves[i];
 			board.makeMove(move);
-			auto [eval, prev_move_str] = quiescence_search(q_depth, alpha, beta, 1 - color, board);
+			auto [eval, prev_move_str] = quiescence_search(q_depth-1, alpha, beta, 1 - color, board);
 			board.unmakeMove(move);
 
 			if (eval < min_eval) {
