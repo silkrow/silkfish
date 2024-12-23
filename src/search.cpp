@@ -40,9 +40,18 @@ void sort_moves(chess::Movelist& moves, const chess::Board& board) {
     });
 }
 
-void table_insert(uint64_t hash, int depth, std::pair<int, string> pair) {
+void table_insert(uint64_t hash, int depth, std::pair<int, string> pair, Color color) {
     if (TTable.size() >= TTABLE_MAX) {
         TTable.clear();
+    }
+
+    auto it = TTable.find(hash);
+    if (it != TTable.end()) {
+        auto [stored_depth, stored_value] = it -> second;
+        if (stored_depth == depth) {
+            if ((color == Color::WHITE && stored_value.first >= pair.first) || 
+            (color == Color::BLACK && stored_value.first <= pair.first)) return;
+        } else if (stored_depth > depth) return;
     }
 
     TTable[hash] = {depth, pair};
@@ -113,6 +122,14 @@ std::pair<int, std::string> quiescence_search (int q_depth, int alpha, int beta,
 std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color color, Board board, uint64_t board_hash) {
     if (debug_mode) mm_cnt++;
 
+    if (board.isGameOver().second == GameResult::DRAW) {
+		return {0, ""};
+	}
+
+	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
+		return {board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE, ""};
+	}
+
     string hash_move = "";
 
     // Check in transposition table
@@ -124,19 +141,11 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
     
         hash_move = (spacePos != std::string::npos) ? value.second.substr(0, spacePos) : value.second;
 
-        if (depth >= mm_depth && evaluation(board) != 0) return value;
+        if (depth > mm_depth) return value;
     }
 
     chess::Movelist moves;
     chess::movegen::legalmoves(moves, board);
-
-    if (board.isGameOver().second == GameResult::DRAW) {
-		return {0, ""};
-	}
-
-	if (board.isGameOver().first == GameResultReason::CHECKMATE) {
-		return {board.sideToMove() == Color::BLACK ? MAX_SCORE:-MAX_SCORE, ""};
-	}
 
     sort_moves(moves, board);
 
@@ -157,7 +166,7 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
 
 	if (mm_depth == 0) {
 		if (appear_quiet(board)) {
-            table_insert(board_hash, mm_depth, {evaluation(board), ""});
+            table_insert(board_hash, mm_depth, {evaluation(board), ""}, color);
 			return {evaluation(board), ""};
 		} else {
 			if (color == Color::WHITE) {
@@ -177,14 +186,14 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
 					if (beta <= alpha) break;
 				}
 				if (max_eval < B_WIN_THRE) {
-                    table_insert(board_hash, mm_depth, {max_eval + 1, best_move_str});
+                    table_insert(board_hash, mm_depth, {max_eval + 1, best_move_str}, color);
                     return {max_eval + 1, best_move_str};
                 }
 				else if (max_eval > W_WIN_THRE) {
-                    table_insert(board_hash, mm_depth, {max_eval - 1, best_move_str});
+                    table_insert(board_hash, mm_depth, {max_eval - 1, best_move_str}, color);
                     return {max_eval - 1, best_move_str};
                 }
-                table_insert(board_hash, mm_depth, {max_eval, best_move_str});
+                table_insert(board_hash, mm_depth, {max_eval, best_move_str}, color);
 				return {max_eval, best_move_str};
 			} else {
 				int min_eval = MAX_SCORE;
@@ -203,14 +212,14 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
 					if (beta <= alpha) break;
 				}
 				if (min_eval < B_WIN_THRE) {
-                    table_insert(board_hash, mm_depth, {min_eval + 1, best_move_str});
+                    table_insert(board_hash, mm_depth, {min_eval + 1, best_move_str}, color);
                     return {min_eval + 1, best_move_str};
                 }
 				else if (min_eval > W_WIN_THRE) {
-                    table_insert(board_hash, mm_depth, {min_eval - 1, best_move_str});
+                    table_insert(board_hash, mm_depth, {min_eval - 1, best_move_str}, color);
                     return {min_eval - 1, best_move_str};
                 }
-                table_insert(board_hash, mm_depth, {min_eval, best_move_str});
+                table_insert(board_hash, mm_depth, {min_eval, best_move_str}, color);
 				return {min_eval, best_move_str};
 			}
 		}
@@ -244,14 +253,14 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
     }
 
     if (best_score < B_WIN_THRE) {
-        table_insert(board_hash, mm_depth, {best_score + 1, best_move_str});
+        table_insert(board_hash, mm_depth, {best_score + 1, best_move_str}, color);
         return {best_score + 1, best_move_str};
     }
     else if (best_score > W_WIN_THRE) {
-        table_insert(board_hash, mm_depth, {best_score - 1, best_move_str});
+        table_insert(board_hash, mm_depth, {best_score - 1, best_move_str}, color);
         return {best_score - 1, best_move_str};
     }
-    table_insert(board_hash, mm_depth, {best_score, best_move_str});
+    table_insert(board_hash, mm_depth, {best_score, best_move_str}, color);
     return {best_score, best_move_str};
 }
 
@@ -305,7 +314,14 @@ chess::Move findBestMove(chess::Board& board, int depth) {
     std::cout << "Best move index: " << best_index << " with eval: " << best_eval << std::endl;
     
     if (debug_mode) {
-
+        // Check in transposition table
+        auto it = TTable.find(board.hash());
+        if (it != TTable.end()) {
+            auto [depth, value] = it -> second;
+            cout << depth << " " << value.first << " " << value.second << endl;
+        } else {
+            cout << "Not in Transposition Table!" << endl;
+        }
         std::cout << "Called minimax#: " << mm_cnt << ", called Qsearch#: " << q_cnt << std::endl;
     }
 
