@@ -45,14 +45,14 @@ void table_insert(uint64_t hash, int depth, std::pair<int, string> pair, Color c
         TTable.clear();
     }
 
-    auto it = TTable.find(hash);
-    if (it != TTable.end()) {
-        auto [stored_depth, stored_value] = it -> second;
-        if (stored_depth == depth) {
-            if ((color == Color::WHITE && stored_value.first >= pair.first) || 
-            (color == Color::BLACK && stored_value.first <= pair.first)) return;
-        } else if (stored_depth > depth) return;
-    }
+    // auto it = TTable.find(hash);
+    // if (it != TTable.end()) {
+    //     auto [stored_depth, stored_value] = it -> second;
+    //     if (stored_depth == depth) {
+    //         if ((color == Color::WHITE && stored_value.first >= pair.first) || 
+    //         (color == Color::BLACK && stored_value.first <= pair.first)) return;
+    //     } else if (stored_depth > depth) return;
+    // }
 
     TTable[hash] = {depth, pair};
 }
@@ -315,13 +315,13 @@ chess::Move findBestMove(chess::Board& board, int depth) {
     
     if (debug_mode) {
         // Check in transposition table
-        auto it = TTable.find(board.hash());
-        if (it != TTable.end()) {
-            auto [depth, value] = it -> second;
-            cout << depth << " " << value.first << " " << value.second << endl;
-        } else {
-            cout << "Not in Transposition Table!" << endl;
-        }
+        // auto it = TTable.find(board.hash());
+        // if (it != TTable.end()) {
+        //     auto [depth, value] = it -> second;
+        //     cout << depth << " " << value.first << " " << value.second << endl;
+        // } else {
+        //     cout << "Not in Transposition Table!" << endl;
+        // }
         std::cout << "Called minimax#: " << mm_cnt << ", called Qsearch#: " << q_cnt << std::endl;
     }
 
