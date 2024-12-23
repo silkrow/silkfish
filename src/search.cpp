@@ -165,7 +165,7 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
     std::string prev_move_str = "";
 
 	if (mm_depth == 0) {
-		if (appear_quiet(board)) {
+		if (true) {
             table_insert(board_hash, mm_depth, {evaluation(board), ""}, color);
 			return {evaluation(board), ""};
 		} else {

@@ -16,7 +16,7 @@ const int DEFAULT_DEPTH_Q = 6;
 
 const int PIECE_VAL[6] = {1, 3, 3, 5, 9, 0};
 const int RAND_MOVE_THRE = 10;
-const long TTABLE_MAX = 50000000;
+const long TTABLE_MAX = 500000;
 
 extern int quiescence_depth;
 extern int mm_depth;
