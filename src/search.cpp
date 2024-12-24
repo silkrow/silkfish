@@ -314,14 +314,6 @@ chess::Move findBestMove(chess::Board& board, int depth) {
     std::cout << "Best move index: " << best_index << " with eval: " << best_eval << std::endl;
     
     if (debug_mode) {
-        // Check in transposition table
-        // auto it = TTable.find(board.hash());
-        // if (it != TTable.end()) {
-        //     auto [depth, value] = it -> second;
-        //     cout << depth << " " << value.first << " " << value.second << endl;
-        // } else {
-        //     cout << "Not in Transposition Table!" << endl;
-        // }
         std::cout << "Called minimax#: " << mm_cnt << ", called Qsearch#: " << q_cnt << std::endl;
     }
 
