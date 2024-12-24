@@ -17,19 +17,20 @@ long q_cnt = 0;
 void sort_moves(chess::Movelist& moves, const chess::Board& board) {
     std::sort(moves.begin(), moves.end(), [&board](const chess::Move& a, const chess::Move& b) {
         int a_val = 0, b_val = 0;
-
+        int af = (int)((board.at<Piece>(a.from())).type());
+        a_val = af;
 		if (a == Move::CASTLING) a_val = CASTLE;
 		else if (board.isCapture(a)) {
-			int af = (int)((board.at<Piece>(a.from())).type());
 			int at = (int)((board.at<Piece>(a.to())).type());
 
 			std::pair<int, int> key = std::make_pair(af, at % 6);
 			a_val = capture_score[key];
 		}
 
+        int bf = (int)((board.at<Piece>(b.from())).type());
+        b_val = bf;
 		if (b == Move::CASTLING) b_val = CASTLE;
 		else if (board.isCapture(b)) {
-			int bf = (int)((board.at<Piece>(b.from())).type());
 			int bt = (int)((board.at<Piece>(b.to())).type());
 
 			std::pair<int, int> key = std::make_pair(bf, bt % 6);
@@ -141,7 +142,7 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
     
         hash_move = (spacePos != std::string::npos) ? value.second.substr(0, spacePos) : value.second;
 
-        if (depth > mm_depth) return value;
+        if (depth >= mm_depth) return value;
     }
 
     chess::Movelist moves;
@@ -277,7 +278,45 @@ chess::Move findBestMove(chess::Board& board, int depth) {
         return chess::Move();
     }
 
-    sort_moves(moves, board);
+    int co = (board.sideToMove() == Color::WHITE)? 1:-1;
+    int scores[moves.size()];
+    int init_score = -1000;
+    for (size_t i = 0; i < moves.size(); i++) {
+
+        int a_val = 0;
+        int af = (int)((board.at<Piece>(moves[i].from())).type());
+        a_val = af;
+		if (moves[i] == Move::CASTLING) a_val = CASTLE;
+		else if (board.isCapture(moves[i])) {
+			int at = (int)((board.at<Piece>(moves[i].to())).type());
+
+			std::pair<int, int> key = std::make_pair(af, at % 6);
+			a_val = capture_score[key];
+		}
+
+        board.makeMove(moves[i]);
+        auto it = TTable.find(board.hash());
+        if (it != TTable.end()) {
+            auto [depth, value] = it -> second;
+            scores[i] = value.first * co;
+        } else {
+            scores[i] = init_score + a_val;
+        }
+        board.unmakeMove(moves[i]);
+    }
+
+    int move_order[moves.size()];
+    
+    for (int i = 0; i < moves.size(); ++i) {
+        move_order[i] = i;
+    }
+
+    auto comparator = [&](int i, int j) {
+        return scores[i] > scores[j];
+    };
+
+    sort(move_order, move_order + moves.size(), comparator);
+
     std::vector<int> evals(moves.size());
     int alpha = -MAX_SCORE;
     int beta = MAX_SCORE;
@@ -286,13 +325,23 @@ chess::Move findBestMove(chess::Board& board, int depth) {
     auto start_time = std::chrono::high_resolution_clock::now();
 
     for (size_t i = 0; i < moves.size(); ++i) {
-        board.makeMove(moves[i]);
+        int j = move_order[i];
+
+        if (debug_mode) {
+            cout << i << ": " << uci::moveToSan(board, moves[j]) << " " << scores[j] << endl;
+        }
+
+        board.makeMove(moves[j]);
         uint64_t board_hash = board.hash();
-        auto[eval, pv_move] = minimax(depth - 1, alpha, beta, 
+
+        int eval;
+        string pv_move;
+
+        std::tie(eval, pv_move) = minimax(depth - 1, alpha, beta, 
                             chess::Color(1 - int(current_turn)), board, board_hash);
 
-        evals[i] = eval;
-        board.unmakeMove(moves[i]);
+        evals[j] = eval;
+        board.unmakeMove(moves[j]);
 
         // cout << i << " " << uci::moveToSan(board, moves[i]) << " " << pv_move << endl;
         if (current_turn == chess::Color::WHITE) {
@@ -304,14 +353,17 @@ chess::Move findBestMove(chess::Board& board, int depth) {
     size_t best_index = 0;
     int best_eval = current_turn == chess::Color::WHITE ? -MAX_SCORE : MAX_SCORE;
 
+    int move_order_index = 0;
     for (size_t i = 0; i < moves.size(); ++i) {
-        if ((current_turn == chess::Color::WHITE && evals[i] > best_eval) ||
-            (current_turn == chess::Color::BLACK && evals[i] < best_eval)) {
-            best_eval = evals[i];
-            best_index = i;
+        int j = move_order[i];
+        if ((current_turn == chess::Color::WHITE && evals[j] > best_eval) ||
+            (current_turn == chess::Color::BLACK && evals[j] < best_eval)) {
+            best_eval = evals[j];
+            best_index = j;
+            move_order_index = i;
         }
     }
-    std::cout << "Best move index: " << best_index << " with eval: " << best_eval << std::endl;
+    std::cout << "Best move index: " << move_order_index << " with eval: " << best_eval << std::endl;
     
     if (debug_mode) {
         std::cout << "Called minimax#: " << mm_cnt << ", called Qsearch#: " << q_cnt << std::endl;
