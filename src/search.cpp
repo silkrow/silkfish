@@ -46,15 +46,6 @@ void table_insert(uint64_t hash, int depth, std::pair<int, string> pair, Color c
         TTable.clear();
     }
 
-    // auto it = TTable.find(hash);
-    // if (it != TTable.end()) {
-    //     auto [stored_depth, stored_value] = it -> second;
-    //     if (stored_depth == depth) {
-    //         if ((color == Color::WHITE && stored_value.first >= pair.first) || 
-    //         (color == Color::BLACK && stored_value.first <= pair.first)) return;
-    //     } else if (stored_depth > depth) return;
-    // }
-
     TTable[hash] = {depth, pair};
 }
 
