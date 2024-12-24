@@ -147,7 +147,7 @@ std::pair<int, std::string> minimax (int mm_depth, int alpha, int beta, Color co
     chess::Movelist moves;
     chess::movegen::legalmoves(moves, board);
 
-    sort_moves(moves, board);
+    if (mm_depth > 0) sort_moves(moves, board);
 
     // Prioritize the hash move
     if (hash_move.size() != 0) {
